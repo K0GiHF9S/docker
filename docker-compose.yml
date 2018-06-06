@@ -4,15 +4,15 @@ services:
     build: ./privileged
     privileged: true
 
-  gitlab-postgresql:
+  gitlab-mysql:
     restart: always
-    image: postgres:10.4-alpine
+    image: mysql:8.0.11
     volumes:
-      - gitlab-db:/var/lib/postgresql/data
+      - ./volumes/gitlab/mysql:/var/lib/mysql
     environment:
-      - POSTGRES_USER=gitlab
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=gitlabhq_production
+      - MYSQL_USER=gitlab
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=gitlabhq_production
 
   gitlab:
     restart: always
@@ -20,7 +20,7 @@ services:
     build: gitlab
     links:
       - gitlab-redis:redis
-      - gitlab-postgresql:postgresql
+      - gitlab-mysql:mysql
     volumes:
       - ./volumes/gitlab/gitlab:/home/git/data
     ports:
@@ -30,12 +30,9 @@ services:
       - TZ=Asia/Tokyo
       - GITLAB_TIMEZONE=Tokyo
 
-      - DB_ADAPTER=postgresql
-      - DB_HOST=postgresql
-      - DB_PORT=5432
-      - DB_USER=gitlab
-      - DB_PASS=password
-      - DB_NAME=gitlabhq_production
+      # - DB_USER=gitlab
+      # - DB_PASS=password
+      # - DB_NAME=gitlabhq_production
 
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -155,32 +152,29 @@ services:
     volumes:
       - ./volumes/gitlab/redis:/data
 
-  redmine-postgresql:
+  redmine-mysql:
     restart: always
-    image: postgres:10.4-alpine
+    image: mysql:8.0.11
     environment:
-      - POSTGRES_USER=redmine
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=redmine_production
+      - MYSQL_USER=redmine
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=redmine_production
     volumes:
-      - redmine-db:/var/lib/postgresql/data
+      - ./volumes/redmine/mysql:/var/lib/mysql
 
   redmine:
     restart: always
     image: sameersbn/redmine:3.4.4-2
     links:
-      - redmine-postgresql:postgresql
+      - redmine-mysql:mysql
     volumes:
       - ./volumes/redmine/redmine:/home/redmine/data
     environment:
       - TZ=Asia/Tokyo
 
-      - DB_ADAPTER=postgresql
-      - DB_HOST=postgresql
-      - DB_PORT=5432
-      - DB_USER=redmine
-      - DB_PASS=password
-      - DB_NAME=redmine_production
+      # - DB_USER=redmine
+      # - DB_PASS=password
+      # - DB_NAME=redmine_production
 
       - REDMINE_PORT=
       - REDMINE_HTTPS=false
@@ -234,6 +228,3 @@ services:
     volumes:
       - ./volumes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf
       - ./volumes/nginx/html:/usr/share/nginx/html
-volumes:
-  gitlab-db:
-  redmine-db:
