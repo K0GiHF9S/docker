@@ -1,14 +1,16 @@
 version: '3'
 services:
-  gitlab-postgresql:
+  gitlab-mysql:
     restart: always
-    image: postgres:10.4-alpine
+    image: mysql:5.7.22
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --skip-character-set-client-handshake
     volumes:
-      - gitlab-postgresql-volume:/var/lib/postgresql/data
+      - ./data/gitlab/mysql:/var/lib/mysql
     environment:
-      - POSTGRES_USER=gitlab
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=gitlabhq_production
+      - MYSQL_ROOT_PASSWORD=rootpass
+      - MYSQL_USER=gitlab
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=gitlabhq_production
 
   gitlab-redis:
     restart: always
@@ -23,7 +25,7 @@ services:
     build: recipes/gitlab
     links:
       - gitlab-redis:redis
-      - gitlab-postgresql:postgresql
+      - gitlab-mysql:mysql
     volumes:
       - gitlab-volume:/home/git/data
       - ./data/gitlab:/backups
@@ -34,9 +36,9 @@ services:
       - TZ=Asia/Tokyo
       - GITLAB_TIMEZONE=Tokyo
 
-      - DB_ADAPTER=postgresql
-      - DB_HOST=postgresql
-      - DB_PORT=5432
+      - DB_ADAPTER=mysql2
+      - DB_HOST=mysql
+      - DB_PORT=3306
       - DB_USER=gitlab
       - DB_PASS=password
       - DB_NAME=gitlabhq_production
@@ -69,7 +71,7 @@ services:
       - GITLAB_BACKUP_SCHEDULE=daily
       - GITLAB_BACKUP_TIME=01:00
       - GITLAB_BACKUP_EXPIRY=604800
-      - GITLAB_BACKUPS_DIR=/backups
+      - GITLAB_BACKUP_DIR=/backups
 
       - SMTP_ENABLED=false
       - SMTP_DOMAIN=www.example.com
@@ -88,30 +90,31 @@ services:
       - IMAP_SSL=true
       - IMAP_STARTTLS=false
 
-  redmine-postgresql:
+  redmine-mysql:
     restart: always
-    image: postgres:10.4-alpine
+    image: mysql:5.7.22
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --skip-character-set-client-handshake
     environment:
-      - POSTGRES_USER=redmine
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=redmine_production
+      - MYSQL_ROOT_PASSWORD=rootpass
+      - MYSQL_USER=redmine
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=redmine_production
     volumes:
-      - redmine-postgresql-volume:/var/lib/postgresql/data
+      - ./data/redmine/mysql:/var/lib/mysql
 
   redmine:
     restart: always
     image: sameersbn/redmine:3.4.4-2
     links:
-      - redmine-postgresql:postgresql
+      - redmine-mysql:mysql
     volumes:
-      - redmine-volume:/home/redmine/data
-      - ./data/redmine:/backups
+      - ./data/redmine/redmine:/home/redmine/data
     environment:
       - TZ=Asia/Tokyo
 
-      - DB_ADAPTER=postgresql
-      - DB_HOST=postgresql
-      - DB_PORT=5432
+      - DB_ADAPTER=mysql2
+      - DB_HOST=mysql
+      - DB_PORT=3306
       - DB_USER=redmine
       - DB_PASS=password
       - DB_NAME=redmine_production
@@ -128,8 +131,7 @@ services:
 
       - REDMINE_BACKUP_SCHEDULE=daily
       - REDMINE_BACKUP_EXPIRY=604800
-      - REDMINE_BACKUP_TIME=4:00
-      - REDMINE_BACKUPS_DIR=/backups
+      - REDMINE_BACKUP_TIME=1:00
 
       - SMTP_ENABLED=false
       - SMTP_METHOD=smtp
