@@ -1,4 +1,4 @@
 @echo off
-docker stop redmine
-docker rm redmine
+docker-compose stop redmine
+docker-compose rm -f redmine
 docker-compose run --rm redmine app:backup:create
