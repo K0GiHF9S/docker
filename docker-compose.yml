@@ -1,5 +1,13 @@
 version: '3'
 services:
+  privileged:
+    image: busybox:1.28.4
+    privileged: true
+    command: >
+      sh -c
+      "echo never | tee /sys/kernel/mm/transparent_hugepage/enabled;
+      echo never | tee /sys/kernel/mm/transparent_hugepage/defrag"
+
   gitlab-mysql:
     restart: always
     image: mysql:5.7.22
@@ -22,6 +30,10 @@ services:
     image: redis:4.0.9-alpine
     command:
       - --loglevel warning
+    depends_on:
+      - privileged
+    sysctls:
+      net.core.somaxconn: 1024
     volumes:
       - ./data/gitlab/redis:/data
 
