@@ -1,12 +1,14 @@
 version: '3'
 services:
   privileged:
+    restart: always
     image: busybox:1.28.4
     privileged: true
     command: >
       sh -c
       "echo never | tee /sys/kernel/mm/transparent_hugepage/enabled;
-      echo never | tee /sys/kernel/mm/transparent_hugepage/defrag"
+      echo never | tee /sys/kernel/mm/transparent_hugepage/defrag;
+      while true; do sleep 10000d; done;"
 
   gitlab-mysql:
     restart: always
