@@ -79,8 +79,6 @@ services:
       - GITLAB_BACKUP_EXPIRY=604800
       - GITLAB_BACKUP_SKIP=lfs
 
-      - GITLAB_GRAVATAR_ENABLED=false
-
       - SMTP_ENABLED=true
       - SMTP_USER=gitlab@k0gihf9s.com
       - SMTP_PASS=password
