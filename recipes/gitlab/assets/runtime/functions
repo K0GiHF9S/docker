@@ -631,6 +631,21 @@ gitlab_configure_oauth_azure() {
   fi
 }
 
+gitlab_configure_oauth_redmine() {
+  if [[ -n ${OAUTH_REDMINE_API_KEY} && \
+        -n ${OAUTH_REDMINE_API_SECRET} && \
+        -n ${OAUTH_REDMINE_DOMAIN} ]]; then
+    echo "Configuring gitlab::oauth::redmine..."
+    OAUTH_ENABLED=${OAUTH_ENABLED:-true}
+    update_template ${GITLAB_CONFIG} \
+      OAUTH_REDMINE_API_KEY \
+      OAUTH_REDMINE_API_SECRET \
+      OAUTH_REDMINE_DOMAIN
+  else
+    exec_as_git sed -i "/name: 'redmine'/,/{{OAUTH_REDMINE_DOMAIN}}/d" ${GITLAB_CONFIG}
+  fi
+}
+
 gitlab_configure_oauth() {
   echo "Configuring gitlab::oauth..."
 
@@ -646,6 +661,7 @@ gitlab_configure_oauth() {
   gitlab_configure_oauth_crowd
   gitlab_configure_oauth_auth0
   gitlab_configure_oauth_azure
+  gitlab_configure_oauth_redmine
 
   OAUTH_ENABLED=${OAUTH_ENABLED:-false}
   update_template ${GITLAB_CONFIG} \

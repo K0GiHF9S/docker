@@ -452,6 +452,10 @@ production: &base
             client_id: '{{OAUTH_AZURE_API_KEY}}',
             client_secret: '{{OAUTH_AZURE_API_SECRET}}',
             tenant_id: '{{OAUTH_AZURE_TENANT_ID}}' } }
+      - { name: 'redmine',
+          app_id: '{{OAUTH_REDMINE_API_KEY}}',
+          app_secret: '{{OAUTH_REDMINE_API_SECRET}}',
+          args: { redmine_base_url: '{{OAUTH_REDMINE_DOMAIN}}' } }
 
     # SSO maximum session duration in seconds. Defaults to CAS default of 8 hours.
     # cas3:
