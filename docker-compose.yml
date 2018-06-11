@@ -1,7 +1,7 @@
 version: '3'
 services:
   privileged:
-    restart: always
+    restart: on-failure
     image: busybox:1.28.4
     privileged: true
     command: >
@@ -11,7 +11,7 @@ services:
       while true; do sleep 10000d; done;"
 
   gitlab-mysql:
-    restart: always
+    restart: on-failure
     image: mysql:5.7.22
     command: >
       mysqld
@@ -28,7 +28,7 @@ services:
       - MYSQL_DATABASE=gitlabhq_production
 
   gitlab-redis:
-    restart: always
+    restart: on-failure
     image: redis:4.0.9-alpine
     command:
       - --loglevel warning
@@ -40,7 +40,7 @@ services:
       - ./data/gitlab/redis:/data
 
   gitlab:
-    restart: always
+    restart: on-failure
     build: recipes/gitlab
     links:
       - gitlab-redis:redis
@@ -111,7 +111,7 @@ services:
       - IMAP_STARTTLS=false
 
   redmine-mysql:
-    restart: always
+    restart: on-failure
     image: mysql:5.7.22
     command: >
       mysqld
@@ -128,11 +128,11 @@ services:
       - ./data/redmine/mysql:/var/lib/mysql
 
   redmine-memcached:
-    restart: always
+    restart: on-failure
     image: memcached:1.5.8-alpine
 
   redmine:
-    restart: always
+    restart: on-failure
     image: sameersbn/redmine:3.4.4-2
     links:
       - redmine-mysql:mysql
@@ -186,7 +186,7 @@ services:
       - IMAP_INTERVAL=30
 
   jenkins:
-    restart: always
+    restart: on-failure
     image: jenkins:2.60.3
     environment:
       - JENKINS_OPTS=--prefix=/jenkins
@@ -195,7 +195,7 @@ services:
       - ./data/jenkins/jenkins:/var/jenkins_home
 
   nginx:
-    restart: always
+    restart: on-failure
     image: nginx:1.14.0-alpine
     links:
       - gitlab:gitlab
