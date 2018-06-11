@@ -110,6 +110,16 @@ services:
       - IMAP_SSL=true
       - IMAP_STARTTLS=false
 
+      - OAUTH_ENABLED=true
+      - OAUTH_ALLOW_SSO=true
+      - OAUTH_BLOCK_AUTO_CREATED_USERS=false
+      - OAUTH_AUTO_LINK_LDAP_USER=false
+      - OAUTH_AUTO_LINK_SAML_USER=false
+
+      - OAUTH_REDMINE_API_KEY=UUiaRVHyHGx78XzpHo1Mq2O2QpEf3WveZh4XryCA
+      - OAUTH_REDMINE_API_SECRET=EX9jk7egrckfKyUDystDwiXwwCzaeK2y3ZPSoKJj
+      - OAUTH_REDMINE_DOMAIN=http://${IPAddress:-localhost}/redmine
+
   redmine-mysql:
     restart: on-failure
     image: mysql:5.7.22
