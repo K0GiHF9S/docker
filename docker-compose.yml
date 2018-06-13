@@ -42,6 +42,7 @@ services:
   gitlab:
     restart: on-failure
     build: recipes/gitlab
+    image: k0gihf9s/gitlab:1.00
     links:
       - gitlab-redis:redis
       - gitlab-mysql:mysql
@@ -197,7 +198,8 @@ services:
 
   jenkins:
     restart: on-failure
-    image: jenkins:2.60.3
+    build: recipes/jenkins
+    image: k0gihf9s/jenkins:1.00
     environment:
       - JENKINS_OPTS=--prefix=/jenkins
       - JAVA_OPTS=-Duser.timezone=Asia/Tokyo -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
