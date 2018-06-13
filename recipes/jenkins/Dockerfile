@@ -7,8 +7,7 @@ RUN apt-get update && apt-get -y install \
     doxygen \
     graphviz
 
-USER jenkins
-
 RUN mkdir /usr/share/plantuml/
 RUN curl -L https://sourceforge.net/projects/plantuml/files/latest/download -o /usr/share/plantuml/plantuml.jar
 
+USER jenkins
