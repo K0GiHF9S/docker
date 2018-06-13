@@ -10,5 +10,5 @@ RUN apt-get update && apt-get -y install \
 USER jenkins
 
 RUN mkdir /usr/share/plantuml/
-# RUN curl -L https://downloads.sourceforge.net/projects/plantuml/files/plantuml.jar -o /usr/share/plantuml/plantuml.jar
-COPY plantuml.jar /usr/share/plantuml/
+RUN curl -L https://sourceforge.net/projects/plantuml/files/latest/download -o /usr/share/plantuml/plantuml.jar
+
