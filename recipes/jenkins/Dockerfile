@@ -10,4 +10,4 @@ RUN apt-get update && apt-get -y install \
 # RUN curl -L https://downloads.sourceforge.net/projects/plantuml/files/plantuml.jar -o /usr/local/bin
 COPY plantuml.jar /usr/local/bin/
 
-USER jenkinsjava
+USER jenkins
