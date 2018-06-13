@@ -13,4 +13,5 @@ RUN sed -i -e "/^gem 'rack-oauth2'/a gem 'omniauth-redmine'" /home/git/gitlab/Ge
 RUN mkdir /home/git/repositories && \
     bundle exec rake assets:precompile RAILS_ENV=production
 
-COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
+COPY docker.patch /tmp/
+RUN cd ${GITLAB_RUNTIME_DIR} && patch -p1 < /tmp/docker.patch

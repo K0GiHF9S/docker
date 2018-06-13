@@ -1,0 +1,66 @@
+ config/gitlabhq/gitlab.yml   |  5 +++++
+ functions                | 18 +++++++++++++++++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/config/gitlabhq/gitlab.yml b/config/gitlabhq/gitlab.yml
+index f058719..48a6709 100644
+--- a/config/gitlabhq/gitlab.yml
++++ b/config/gitlabhq/gitlab.yml
+@@ -452,6 +452,11 @@ production: &base
+             client_id: '{{OAUTH_AZURE_API_KEY}}',
+             client_secret: '{{OAUTH_AZURE_API_SECRET}}',
+             tenant_id: '{{OAUTH_AZURE_TENANT_ID}}' } }
++      - { name: 'redmine',
++          app_id: '{{OAUTH_REDMINE_API_KEY}}',
++          app_secret: '{{OAUTH_REDMINE_API_SECRET}}',
++          args: {
++            redmine_base_url: '{{OAUTH_REDMINE_DOMAIN}}' } }
+
+     # SSO maximum session duration in seconds. Defaults to CAS default of 8 hours.
+     # cas3:
+diff --git a/functions b/functions
+index e3a6e3d..6b072f1 100644
+--- a/functions
++++ b/functions
+@@ -631,6 +631,21 @@ gitlab_configure_oauth_azure() {
+   fi
+ }
+
++gitlab_configure_oauth_redmine() {
++  if [[ -n ${OAUTH_REDMINE_API_KEY} && \
++        -n ${OAUTH_REDMINE_API_SECRET} && \
++        -n ${OAUTH_REDMINE_DOMAIN} ]]; then
++    echo "Configuring gitlab::oauth::redmine..."
++    OAUTH_ENABLED=${OAUTH_ENABLED:-true}
++    update_template ${GITLAB_CONFIG} \
++      OAUTH_REDMINE_API_KEY \
++      OAUTH_REDMINE_API_SECRET \
++      OAUTH_REDMINE_DOMAIN
++  else
++    exec_as_git sed -i "/name: 'redmine'/,/{{OAUTH_REDMINE_DOMAIN}}/d" ${GITLAB_CONFIG}
++  fi
++}
++
+ gitlab_configure_oauth() {
+   echo "Configuring gitlab::oauth..."
+
+@@ -646,6 +661,7 @@ gitlab_configure_oauth() {
+   gitlab_configure_oauth_crowd
+   gitlab_configure_oauth_auth0
+   gitlab_configure_oauth_azure
++  gitlab_configure_oauth_redmine
+
+   OAUTH_ENABLED=${OAUTH_ENABLED:-false}
+   update_template ${GITLAB_CONFIG} \
+@@ -657,7 +673,7 @@ gitlab_configure_oauth() {
+     OAUTH_EXTERNAL_PROVIDERS
+
+   case ${OAUTH_AUTO_SIGN_IN_WITH_PROVIDER} in
+-    cas3|google_oauth2|facebook|twitter|github|gitlab|bitbucket|saml|crowd|azure_oauth2)
++    cas3|google_oauth2|facebook|twitter|github|gitlab|bitbucket|saml|crowd|azure_oauth2|redmine)
+       update_template ${GITLAB_CONFIG} OAUTH_AUTO_SIGN_IN_WITH_PROVIDER
+       ;;
+     *)
+--
+2.10.2.windows.1
+
