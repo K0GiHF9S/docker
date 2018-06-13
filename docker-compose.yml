@@ -112,7 +112,6 @@ services:
 
       - OAUTH_ENABLED=true
       - OAUTH_ALLOW_SSO=redmine
-      - OAUTH_AUTO_SIGN_IN_WITH_PROVIDER=redmine
       - OAUTH_BLOCK_AUTO_CREATED_USERS=false
       - OAUTH_AUTO_LINK_LDAP_USER=false
       - OAUTH_AUTO_LINK_SAML_USER=false
