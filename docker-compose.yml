@@ -39,6 +39,20 @@ services:
     volumes:
       - ./data/gitlab/redis:/data
 
+  gitlab-ci-multi-runner:
+    restart: always
+    build: recipes/gitlab-ci-multi-runner
+    image: k0gihf9s/gitlab-ci-multi-runner:1.00
+    links:
+      - gitlab:gitlab
+    volumes:
+      - ./data/gitlab/gitlab-ci-multi-runner:/home/gitlab_ci_multi_runner/data
+    environment:
+      - CI_SERVER_URL=http://gitlab/gitlab/ci
+      - RUNNER_TOKEN=XvhgTk3ecqp1Vt1aoh1B
+      - RUNNER_DESCRIPTION=runner1
+      - RUNNER_EXECUTOR=shell
+
   gitlab:
     restart: always
     build: recipes/gitlab
