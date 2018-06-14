@@ -122,7 +122,7 @@ services:
       - OAUTH_REDMINE_DOMAIN=http://${IPAddress:-localhost}/redmine
 
   redmine-mysql:
-    restart: on-failure
+    restart: always
     image: mysql:5.7.22
     command: >
       mysqld
@@ -139,11 +139,11 @@ services:
       - ./data/redmine/mysql:/var/lib/mysql
 
   redmine-memcached:
-    restart: on-failure
+    restart: always
     image: memcached:1.5.8-alpine
 
   redmine:
-    restart: on-failure
+    restart: always
     image: sameersbn/redmine:3.4.4-2
     links:
       - redmine-mysql:mysql
@@ -197,7 +197,7 @@ services:
       - IMAP_INTERVAL=30
 
   jenkins:
-    restart: on-failure
+    restart: always
     build: recipes/jenkins
     image: k0gihf9s/jenkins:1.00
     environment:
@@ -207,7 +207,7 @@ services:
       - ./data/jenkins/jenkins:/var/jenkins_home
 
   nginx:
-    restart: on-failure
+    restart: always
     image: nginx:1.14.0-alpine
     links:
       - gitlab:gitlab
