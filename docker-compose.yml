@@ -1,7 +1,7 @@
 version: '3'
 services:
   privileged:
-    restart: on-failure
+    restart: always
     image: busybox:1.28.4
     privileged: true
     command: >
@@ -11,7 +11,7 @@ services:
       while true; do sleep 10000d; done;"
 
   gitlab-mysql:
-    restart: on-failure
+    restart: always
     image: mysql:5.7.22
     command: >
       mysqld
@@ -28,7 +28,7 @@ services:
       - MYSQL_DATABASE=gitlabhq_production
 
   gitlab-redis:
-    restart: on-failure
+    restart: always
     image: redis:4.0.9-alpine
     command:
       - --loglevel warning
@@ -40,7 +40,7 @@ services:
       - ./data/gitlab/redis:/data
 
   gitlab:
-    restart: on-failure
+    restart: always
     build: recipes/gitlab
     image: k0gihf9s/gitlab:1.00
     links:
