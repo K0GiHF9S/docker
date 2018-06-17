@@ -1,5 +1,18 @@
-version: '3'
+version: '3.6'
 services:
+  backup:
+    restart: always
+    build: ./recipes/backup
+    image: k0gihf9s/backup:1.00
+    volumes:
+      - ./data/other/backups:/var/backup
+      - ./data/jenkins/jenkins:/var/target/monthly/jenkins
+      - ./data/gitlab/gitlab/shared/lfs-objects:/var/target/monthly/gitlab/lfs-objects
+      - ./data/gitlab/gitlab/.ssh:/var/target/monthly/gitlab/.ssh
+      - gitlab-ssh-volume:/var/target/monthly/gitlab/ssh
+    environment:
+      - TZ=Asia/Tokyo
+
   privileged:
     restart: always
     image: busybox:1.28.4
@@ -64,11 +77,13 @@ services:
       - ./data/gitlab/gitlab/backups:/home/git/data/backups
       - ./data/gitlab/gitlab/builds:/home/git/data/builds
       - ./data/gitlab/gitlab/repositories:/home/git/data/repositories
-      - ./data/gitlab/gitlab/shared:/home/git/data/shared
+      - ./data/gitlab/gitlab/shared/lfs-objects:/home/git/data/shared/lfs-objects
       - ./data/gitlab/gitlab/tmp:/home/git/data/tmp
       - ./data/gitlab/gitlab/uploads:/home/git/data/uploads
       - ./data/gitlab/gitlab/.ssh:/home/git/data/.ssh
       - gitlab-ssh-volume:/home/git/data/ssh
+      - gitlab-artifacts-volume:/home/git/data/shared/artifacts
+      - gitlab-pages-volume:/home/git/data/shared/pages
     environment:
       - DEBUG=false
       - TZ=Asia/Tokyo
@@ -236,3 +251,5 @@ services:
 
 volumes:
   gitlab-ssh-volume:
+  gitlab-artifacts-volume:
+  gitlab-pages-volume:

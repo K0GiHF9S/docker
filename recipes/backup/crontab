@@ -1,0 +1,4 @@
+# do daily/weekly/monthly maintenance
+# min   hour    day     month   weekday command
+0       3       *       *       0       FILE_PREFIX=$WEEKLY_FILE_PREFIX TARGET_DIR=$WEEKLY_TARGET_DIR BACKUP_DIR=$WEEKLY_BACKUP_DIR BACKUP_LIMIT=$WEEKLY_BACKUP_LIMIT weekly_backup.sh
+0       4       1-7     *       *       [ "$(date '+%w')" -eq 0 ] && FILE_PREFIX=$MONTHLY_FILE_PREFIX TARGET_DIR=$MONTHLY_TARGET_DIR BACKUP_DIR=$MONTHLY_BACKUP_DIR BACKUP_LIMIT=$MONTHLY_BACKUP_LIMIT monthly_backup.sh
