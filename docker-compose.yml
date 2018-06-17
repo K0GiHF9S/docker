@@ -140,6 +140,12 @@ services:
       - IMAP_SSL=true
       - IMAP_STARTTLS=false
 
+      - GITLAB_PAGES_ENABLED=true
+      - GITLAB_PAGES_DOMAIN=hswinter.mydns.jp
+      - GITLAB_PAGES_HTTPS=false
+      - GITLAB_PAGES_PORT=80
+      - GITLAB_PAGES_EXTERNAL_HTTP=:8010
+
       - OAUTH_ENABLED=true
       - OAUTH_ALLOW_SSO=redmine
       - OAUTH_BLOCK_AUTO_CREATED_USERS=false
