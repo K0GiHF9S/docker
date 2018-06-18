@@ -253,6 +253,34 @@ services:
     volumes:
       - ./data/jenkins/jenkins:/var/jenkins_home
 
+  ldap:
+    image: osixia/openldap-backup:1.2.1
+    volumes:
+      - ./data/ldap/backup:/data/backup
+      - ldap-data-volume:/var/lib/ldap
+      - ldap-config-volume:/etc/ldap/slapd.d
+    environment:
+      - TZ=Asia/Tokyo
+
+      - LDAP_ORGANISATION=k0gihf9s
+      - LDAP_DOMAIN=hswinter.mydns.jp
+      - LDAP_ADMIN_PASSWORD=admin
+      - LDAP_CONFIG_PASSWORD=config
+
+      - LDAP_BACKUP_CONFIG_CRON_EXP=0 4 1 * *
+      - LDAP_BACKUP_DATA_CRON_EXP=0 4 1 * *z
+      - LDAP_BACKUP_TTL=15
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:0.7.1
+    links:
+      - ldap:ldap
+    environment:
+      - TZ=Asia/Tokyo
+
+      - PHPLDAPADMIN_LDAP_HOSTS=ldap
+      - PHPLDAPADMIN_HTTPS=false
+
   nginx:
     restart: always
     image: nginx:1.14.0-alpine
@@ -260,6 +288,7 @@ services:
       - gitlab:gitlab
       - redmine:redmine
       - jenkins:jenkins
+      - phpldapadmin:phpldapadmin
     ports:
       - '80:80'
       - '22:22'
@@ -273,3 +302,5 @@ volumes:
   gitlab-ssh-volume:
   gitlab-artifacts-volume:
   gitlab-pages-volume:
+  ldap-data-volume:
+  ldap-config-volume:
