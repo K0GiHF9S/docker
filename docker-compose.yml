@@ -60,8 +60,8 @@ services:
     restart: always
     build: recipes/gitlab-ci-multi-runner
     image: k0gihf9s/gitlab-ci-multi-runner:1.00
-    links:
-      - gitlab:gitlab
+    depends_on:
+      - gitlab
     volumes:
       - ./data/gitlab/gitlab-ci-multi-runner:/home/gitlab_ci_multi_runner/data
     environment:
@@ -76,9 +76,9 @@ services:
     restart: always
     build: recipes/gitlab
     image: k0gihf9s/gitlab:1.00
-    links:
-      - gitlab-redis:redis
-      - gitlab-mysql:mysql
+    depends_on:
+      - gitlab-redis
+      - gitlab-mysql
     volumes:
       - ./data/gitlab/gitlab/backups:/home/git/data/backups
       - ./data/gitlab/gitlab/builds:/home/git/data/builds
@@ -96,13 +96,13 @@ services:
       - GITLAB_TIMEZONE=Tokyo
 
       - DB_ADAPTER=mysql2
-      - DB_HOST=mysql
+      - DB_HOST=gitlab-mysql
       - DB_PORT=3306
       - DB_USER=gitlab
       - DB_PASS=password
       - DB_NAME=gitlabhq_production
 
-      - REDIS_HOST=redis
+      - REDIS_HOST=gitlab-redis
       - REDIS_PORT=6379
 
       - GITLAB_HTTPS=false
@@ -190,9 +190,9 @@ services:
   redmine:
     restart: always
     image: sameersbn/redmine:3.4.4-2
-    links:
-      - redmine-mysql:mysql
-      - redmine-memcached:memcached
+    depends_on:
+      - redmine-mysql
+      - redmine-memcached
     volumes:
       - ./data/redmine/redmine:/home/redmine/data
       - ./data/gitlab/gitlab/repositories:/git
@@ -200,13 +200,13 @@ services:
       - TZ=Asia/Tokyo
 
       - DB_ADAPTER=mysql2
-      - DB_HOST=mysql
+      - DB_HOST=redmine-mysql
       - DB_PORT=3306
       - DB_USER=redmine
       - DB_PASS=password
       - DB_NAME=redmine_production
 
-      - MEMCACHE_HOST=memcached
+      - MEMCACHE_HOST=redmine-memcached
       - MEMCACHE_PORT=11211
 
       - REDMINE_PORT=80
@@ -273,8 +273,8 @@ services:
 
   phpldapadmin:
     image: osixia/phpldapadmin:0.7.1
-    links:
-      - ldap:ldap
+    depends_on:
+      - ldap
     environment:
       - TZ=Asia/Tokyo
 
@@ -284,11 +284,6 @@ services:
   nginx:
     restart: always
     image: nginx:1.14.0-alpine
-    links:
-      - gitlab:gitlab
-      - redmine:redmine
-      - jenkins:jenkins
-      - phpldapadmin:phpldapadmin
     ports:
       - '80:80'
       - '22:22'
