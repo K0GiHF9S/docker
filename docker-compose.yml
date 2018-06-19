@@ -278,8 +278,8 @@ services:
       - '80:80'
       - '22:22'
     volumes:
-      - ./recipes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf
-      - ./recipes/nginx/html:/usr/share/nginx/html
+      - ./recipes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./recipes/nginx/html:/usr/share/nginx/html:ro
     environment:
       - TZ=Asia/Tokyo
 
