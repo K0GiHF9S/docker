@@ -8,7 +8,8 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
     graphviz \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /usr/share/plantuml/ \
-    && curl -L https://sourceforge.net/projects/plantuml/files/latest/download -o /usr/share/plantuml/plantuml.jar
+RUN wget https://bootstrap.pypa.io/get-pip.py && \
+    python get-pip.py && \
+    pip install python-redmine
 
 USER jenkins
