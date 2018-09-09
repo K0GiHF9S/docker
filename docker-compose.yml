@@ -277,6 +277,7 @@ services:
     ports:
       - '80:80'
       - '22:22'
+      - '50000:50000'
     volumes:
       - ./recipes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./recipes/nginx/html:/usr/share/nginx/html:ro
