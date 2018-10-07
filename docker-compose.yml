@@ -235,7 +235,7 @@ services:
   jenkins:
     restart: always
     build: recipes/jenkins
-    image: k0gihf9s/jenkins:1.00
+    image: k0gihf9s/jenkins:2.60.3
     environment:
       - TZ=Asia/Tokyo
 
