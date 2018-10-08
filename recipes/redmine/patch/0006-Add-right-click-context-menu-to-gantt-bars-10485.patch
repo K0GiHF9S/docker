@@ -1,0 +1,65 @@
+From 4ec2526643b269eb3888696df7dc6c750bc499bd Mon Sep 17 00:00:00 2001
+From: Go MAEDA <maeda@farend.jp>
+Date: Sat, 25 Nov 2017 16:31:50 +0000
+Subject: [PATCH 06/11] Add right-click context menu to gantt bars (#10485).
+
+Contributed by Mizuki ISHIKAWA.
+
+
+git-svn-id: http://svn.redmine.org/redmine/trunk@17031 e93f8b46-1217-0410-a6f0-8f06a7374b81
+---
+ app/views/gantts/show.html.erb      | 4 +++-
+ lib/redmine/helpers/gantt.rb        | 3 ++-
+ public/stylesheets/context_menu.css | 3 +++
+ 3 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/app/views/gantts/show.html.erb b/app/views/gantts/show.html.erb
+index 0152c7c11..8949f4cbc 100644
+--- a/app/views/gantts/show.html.erb
++++ b/app/views/gantts/show.html.erb
+@@ -307,7 +307,9 @@
+   <% end %>
+ <% end %>
+ 
+-<%= @gantt.lines.html_safe %>
++<%= form_tag({}, :data => {:cm_url => issues_context_menu_path}) do -%>
++  <%= @gantt.lines.html_safe %>
++<% end %>
+ 
+ <% ###### Today red line (excluded from cache) ###### %>
+ <% if User.current.today >= @gantt.date_from and User.current.today <= @gantt.date_to %>
+diff --git a/lib/redmine/helpers/gantt.rb b/lib/redmine/helpers/gantt.rb
+index fc3a6c073..b859c6c7d 100644
+--- a/lib/redmine/helpers/gantt.rb
++++ b/lib/redmine/helpers/gantt.rb
+@@ -842,6 +842,7 @@ module Redmine
+           s = view.content_tag(:span,
+                                view.render_issue_tooltip(object).html_safe,
+                                :class => "tip")
++          s += view.content_tag(:input, nil, :type => 'checkbox', :name => 'ids[]', :value => object.id, :style => 'display:none;', :class => 'toggle-selection')
+           style = ""
+           style << "position: absolute;"
+           style << "top:#{params[:top]}px;"
+@@ -850,7 +851,7 @@ module Redmine
+           style << "height:12px;"
+           output << view.content_tag(:div, s.html_safe,
+                                      :style => style,
+-                                     :class => "tooltip")
++                                     :class => "tooltip hascontextmenu")
+         end
+         @lines << output
+         output
+diff --git a/public/stylesheets/context_menu.css b/public/stylesheets/context_menu.css
+index 2b9799387..7dcd9c81c 100644
+--- a/public/stylesheets/context_menu.css
++++ b/public/stylesheets/context_menu.css
+@@ -54,3 +54,6 @@
+ .context-menu-selection { background-color:#507AAA !important; color:#f8f8f8 !important; }
+ .context-menu-selection a, .context-menu-selection a:hover { color:#f8f8f8 !important; }
+ .context-menu-selection:hover { background-color:#507AAA !important; color:#f8f8f8  !important; }
++div#gantt_area .context-menu-selection { background-color: rgba(80, 122, 170, 0.48) !important; }
++div#gantt_area .context-menu-selection:hover { background-color: rgba(80, 122, 170, 0.48) !important; }
++div#gantt_area .context-menu-selection a { color: #169 !important; }
+-- 
+2.19.0.windows.1
+

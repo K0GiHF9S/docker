@@ -1,0 +1,32 @@
+From 2afaf28ee85e1388ce266bc010aa21fe407c4f2f Mon Sep 17 00:00:00 2001
+From: Go MAEDA <maeda@farend.jp>
+Date: Mon, 27 Nov 2017 00:34:30 +0000
+Subject: [PATCH 07/11] Add tests for context menu in gantt (#10485).
+
+Patch by Marius BALTEANU.
+
+
+git-svn-id: http://svn.redmine.org/redmine/trunk@17037 e93f8b46-1217-0410-a6f0-8f06a7374b81
+---
+ test/functional/gantts_controller_test.rb | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/test/functional/gantts_controller_test.rb b/test/functional/gantts_controller_test.rb
+index 063312b76..dd397d0e4 100644
+--- a/test/functional/gantts_controller_test.rb
++++ b/test/functional/gantts_controller_test.rb
+@@ -47,6 +47,11 @@ class GanttsControllerTest < Redmine::ControllerTest
+       end
+     end
+ 
++    # Assert context menu on issues subject and gantt bar
++    assert_select 'div[class=?]', 'issue-subject hascontextmenu'
++    assert_select 'div[class=?]', 'tooltip hascontextmenu'
++    assert_select "form[data-cm-url=?]", '/issues/context_menu'
++
+     # Issue with start and due dates
+     i = Issue.find(1)
+     assert_not_nil i.due_date
+-- 
+2.19.0.windows.1
+
