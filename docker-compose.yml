@@ -74,6 +74,7 @@ services:
     depends_on:
       - gitlab-redis
       - gitlab-mysql
+      - redmine
     volumes:
       - ./data/gitlab/gitlab/backups:/home/git/data/backups
       - ./data/gitlab/gitlab/builds:/home/git/data/builds
@@ -236,6 +237,8 @@ services:
     restart: always
     build: recipes/jenkins
     image: k0gihf9s/jenkins:1.9.0
+    depends_on:
+      - redmine-mysql
     environment:
       - TZ=Asia/Tokyo
 
