@@ -28,7 +28,7 @@ services:
     image: mysql:5.7.22
     volumes:
       - ./data/gitlab/mysql:/var/lib/mysql
-      - ./recipes/gitlab-mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
     environment:
       - TZ=Asia/Tokyo
 
@@ -170,7 +170,7 @@ services:
       - MYSQL_DATABASE=redmine_production
     volumes:
       - ./data/redmine/mysql:/var/lib/mysql
-      - ./recipes/redmine-mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
 
   redmine-memcached:
     restart: always
