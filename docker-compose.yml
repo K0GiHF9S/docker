@@ -82,7 +82,7 @@ services:
       - ./data/gitlab/gitlab/shared/lfs-objects:/home/git/data/shared/lfs-objects
       - ./data/gitlab/gitlab/tmp:/home/git/data/tmp
       - ./data/gitlab/gitlab/uploads:/home/git/data/uploads
-      - ./data/gitlab/gitlab/.ssh:/home/git/data/.ssh
+      - gitlab-dotssh-volume:/home/git/data/.ssh
       - gitlab-ssh-volume:/home/git/data/ssh
       - gitlab-artifacts-volume:/home/git/data/shared/artifacts
       - gitlab-pages-volume:/home/git/data/shared/pages
@@ -323,6 +323,7 @@ services:
       - TZ=Asia/Tokyo
 
 volumes:
+  gitlab-dotssh-volume:
   gitlab-ssh-volume:
   gitlab-artifacts-volume:
   gitlab-pages-volume:
