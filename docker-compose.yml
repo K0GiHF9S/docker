@@ -54,7 +54,7 @@ services:
   gitlab-ci-multi-runner:
     restart: always
     build: recipes/gitlab-ci-multi-runner
-    image: k0gihf9s/gitlab-ci-multi-runner:1.00
+    image: k0gihf9s/gitlab-ci-multi-runner:1.1.4-7
     depends_on:
       - gitlab
     volumes:
@@ -70,7 +70,7 @@ services:
   gitlab:
     restart: always
     build: recipes/gitlab
-    image: k0gihf9s/gitlab:11.3.4
+    image: k0gihf9s/gitlab:11.9.1
     depends_on:
       - gitlab-redis
       - gitlab-mysql
@@ -181,7 +181,7 @@ services:
   redmine:
     restart: always
     build: recipes/redmine
-    image: k0gihf9s/redmine:3.4.6
+    image: k0gihf9s/redmine:3.4.9
     depends_on:
       - redmine-mysql
       - redmine-memcached
@@ -236,7 +236,7 @@ services:
   jenkins:
     restart: always
     build: recipes/jenkins
-    image: k0gihf9s/jenkins:1.9.0
+    image: k0gihf9s/jenkins:1.14.0-bcc31d32159f
     depends_on:
       - redmine-mysql
     environment:
@@ -251,7 +251,7 @@ services:
   mattermost:
     restart: always
     build: recipes/mattermost
-    image: k0gihf9s/mattermost:5.5.1
+    image: k0gihf9s/mattermost:5.9.0
     volumes:
       - ./data/mattermost/mattermost/config:/mattermost/config
       - ./data/mattermost/mattermost/data:/mattermost/data
@@ -311,7 +311,7 @@ services:
 
   nginx:
     restart: always
-    image: nginx:1.14.0-alpine
+    image: nginx:1.15.10-alpine
     ports:
       - '80:80'
       - '22:22'

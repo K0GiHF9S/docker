@@ -1,4 +1,4 @@
-FROM jenkinsci/blueocean:1.9.0-bcc31d32159f
+FROM jenkinsci/blueocean:1.14.0-bcc31d32159f
 
 USER root
 RUN apk --no-cache add cppcheck \

@@ -1,4 +1,4 @@
-FROM sameersbn/gitlab:11.3.4
+FROM sameersbn/gitlab:11.9.1
 
 COPY docker.patch /tmp/
 RUN DEPS='patch' \
@@ -20,3 +20,7 @@ RUN DEPS='patch' \
     && rm -f ${GITLAB_INSTALL_DIR}/.gitlab_shell_secret \
     && rm -f ${GITLAB_INSTALL_DIR}/.gitlab_workhorse_secret \
     && find ${GITLAB_HOME} ! -user ${GITLAB_USER} ! -type l | xargs chown ${GITLAB_USER}:
+COPY --chown=git:git redmine_64.png ${GITLAB_INSTALL_DIR}/app/assets/images/auth_buttons/
+COPY --chown=git:git auth_helper.rb ${GITLAB_INSTALL_DIR}/app/helpers/
+RUN chmod 644 ${GITLAB_INSTALL_DIR}/app/assets/images/auth_buttons/redmine_64.png \
+    ${GITLAB_INSTALL_DIR}/app/helpers/auth_helper.rb

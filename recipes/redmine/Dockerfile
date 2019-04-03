@@ -1,4 +1,4 @@
-FROM sameersbn/redmine:3.4.6
+FROM sameersbn/redmine:3.4.9
 
 COPY patch/ /tmp/
 RUN find /tmp/ -maxdepth 1 -type f -name '*.patch' \
