@@ -54,7 +54,7 @@ services:
   gitlab-ci-multi-runner:
     restart: always
     build: recipes/gitlab-ci-multi-runner
-    image: k0gihf9s/gitlab-ci-multi-runner:1.1.4-7
+    image: k0gihf9s/gitlab-ci-multi-runner:11.9.1
     depends_on:
       - gitlab
     volumes:
@@ -62,7 +62,7 @@ services:
     environment:
       - TZ=Asia/Tokyo
 
-      - CI_SERVER_URL=http://gitlab/gitlab/ci
+      - CI_SERVER_URL=http://gitlab/gitlab
       - RUNNER_TOKEN=XvhgTk3ecqp1Vt1aoh1B
       - RUNNER_DESCRIPTION=runner1
       - RUNNER_EXECUTOR=shell

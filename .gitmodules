@@ -1,0 +1,3 @@
+[submodule "recipes/gitlab-ci-multi-runner"]
+	path = recipes/gitlab-ci-multi-runner
+	url = git@github.com:K0GiHF9S/docker-gitlab-ci-multi-runner.git
