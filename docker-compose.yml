@@ -70,7 +70,7 @@ services:
   gitlab:
     restart: always
     build: recipes/gitlab
-    image: k0gihf9s/gitlab:11.9.1
+    image: k0gihf9s/gitlab:11.9.5
     depends_on:
       - gitlab-redis
       - gitlab-mysql
@@ -157,6 +157,8 @@ services:
       - OAUTH_REDMINE_API_KEY=qrVKexnOqa2IL0oee50kCBUDBcqL1nOwpQXGpt4L
       - OAUTH_REDMINE_API_SECRET=7n3jbUDlqqJoOnwEKEU2sfMIWOZlkEG8wRuTyw4v
       - OAUTH_REDMINE_DOMAIN=http://hswinter.mydns.jp/redmine
+
+      - GITLAB_UNICORN_MEMORY_MAX=629145600
 
   redmine-mysql:
     restart: always
