@@ -17,6 +17,7 @@ RUN mkdir -p /usr/lib/jvm/java-1.8-openjdk/lib/fonts/fallback && \
 RUN wget https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
     pip install python-redmine && \
+    pip install python-gitlab && \
     rm get-pip.py
 
 USER jenkins
