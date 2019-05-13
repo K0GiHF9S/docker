@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.9.4
 
 ENV MONTHLY_BACKUP_DIR="/var/backup/monthly" \
     MONTHLY_TARGET_DIR="/var/target/monthly" \
