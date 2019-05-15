@@ -25,7 +25,7 @@ services:
 
   gitlab-mysql:
     restart: always
-    image: mysql:5.7.26
+    image: mysql:5.7.22
     volumes:
       - ./data/gitlab/mysql:/var/lib/mysql
       - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
@@ -162,7 +162,7 @@ services:
 
   redmine-mysql:
     restart: always
-    image: mysql:5.7.26
+    image: mysql:5.7.22
     environment:
       - TZ=Asia/Tokyo
 
