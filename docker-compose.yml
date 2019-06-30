@@ -183,7 +183,7 @@ services:
   redmine:
     restart: always
     build: recipes/redmine
-    image: k0gihf9s/redmine:3.4.10-1
+    image: k0gihf9s/redmine:4.0.4
     depends_on:
       - redmine-mysql
       - redmine-memcached
