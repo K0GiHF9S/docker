@@ -238,7 +238,7 @@ services:
   jenkins:
     restart: always
     build: recipes/jenkins
-    image: k0gihf9s/jenkins:1.16.0-bcc31d32159f
+    image: k0gihf9s/jenkins:1.17.0-bcc31d32159f
     depends_on:
       - redmine-mysql
     environment:
