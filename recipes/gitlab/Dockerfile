@@ -1,4 +1,4 @@
-FROM sameersbn/gitlab:11.10.4
+FROM sameersbn/gitlab:11.11.3
 
 COPY docker.patch /tmp/
 RUN DEPS='patch' \
