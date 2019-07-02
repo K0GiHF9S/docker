@@ -244,7 +244,7 @@ services:
     environment:
       - TZ=Asia/Tokyo
 
-      - JENKINS_OPTS=--prefix=/jenkins
+      - JENKINS_OPTS=--prefix=/jenkins --sessionTimeout=0
       - JAVA_OPTS=-Duser.timezone=Asia/Tokyo -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
     volumes:
       - ./data/jenkins/jenkins:/var/jenkins_home
