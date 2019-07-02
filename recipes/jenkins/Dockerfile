@@ -5,7 +5,8 @@ RUN apk --no-cache add cppcheck \
                     openjdk8 \
                     doxygen \
                     graphviz \
-                    python
+                    python \
+                    cloc
 
 RUN mkdir -p /usr/lib/jvm/java-1.8-openjdk/lib/fonts/fallback && \
     cd /usr/lib/jvm/java-1.8-openjdk/lib/fonts/fallback && \
@@ -18,6 +19,8 @@ RUN wget https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
     pip install python-redmine && \
     pip install python-gitlab && \
+    pip install lizard && \
+    pip install jinja2 && \
     rm get-pip.py
 
 USER jenkins
