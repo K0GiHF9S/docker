@@ -8,7 +8,15 @@ RUN apk --no-cache add cppcheck \
                     python \
                     cloc
 
-RUN mkdir -p /usr/lib/jvm/java-1.8-openjdk/lib/fonts/fallback && \
+RUN cd /tmp && \
+    wget -O IPAfont.zip https://ipafont.ipa.go.jp/old/ipafont/IPAfont00303.php && \
+    unzip IPAfont.zip && \
+    mkdir -p /usr/share/fonts/opentype/ipafont-gothic && \
+    mkdir -p /usr/share/fonts/opentype/ipafont-mincho && \
+    cp IPAfont*/ipag*.ttf /usr/share/fonts/opentype/ipafont-gothic && \
+    cp IPAfont*/ipam*.ttf /usr/share/fonts/opentype/ipafont-mincho && \
+    rm -r IPAfont* && \
+    mkdir -p /usr/lib/jvm/java-1.8-openjdk/lib/fonts/fallback && \
     cd /usr/lib/jvm/java-1.8-openjdk/lib/fonts/fallback && \
     ln -s /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf && \
     ln -s /usr/share/fonts/opentype/ipafont-gothic/ipagp.ttf && \
