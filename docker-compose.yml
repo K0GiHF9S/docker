@@ -23,19 +23,17 @@ services:
       echo never | tee /sys/kernel/mm/transparent_hugepage/defrag;
       while true; do sleep 10000d; done;"
 
-  gitlab-mysql:
+  gitlab-postgres:
     restart: always
-    image: mysql:5.7.22
-    volumes:
-      - ./data/gitlab/mysql:/var/lib/mysql
-      - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    image: postgres:11.4-alpine
     environment:
       - TZ=Asia/Tokyo
 
-      - MYSQL_ROOT_PASSWORD=rootpass
-      - MYSQL_USER=gitlab
-      - MYSQL_PASSWORD=password
-      - MYSQL_DATABASE=gitlabhq_production
+      - POSTGRES_USER=gitlab
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=gitlabhq_production
+    volumes:
+      - gitlab-postgres-volume:/var/lib/postgresql/data
 
   gitlab-redis:
     restart: always
@@ -73,7 +71,7 @@ services:
     image: k0gihf9s/gitlab:11.11.3
     depends_on:
       - gitlab-redis
-      - gitlab-mysql
+      - gitlab-postgres
       - redmine
     volumes:
       - ./data/gitlab/gitlab/backups:/home/git/data/backups
@@ -91,9 +89,9 @@ services:
       - TZ=Asia/Tokyo
       - GITLAB_TIMEZONE=Tokyo
 
-      - DB_ADAPTER=mysql2
-      - DB_HOST=gitlab-mysql
-      - DB_PORT=3306
+      - DB_ADAPTER=postgresql
+      - DB_HOST=gitlab-postgres
+      - DB_PORT=5432
       - DB_USER=gitlab
       - DB_PASS=password
       - DB_NAME=gitlabhq_production
@@ -329,5 +327,6 @@ volumes:
   gitlab-ssh-volume:
   gitlab-artifacts-volume:
   gitlab-pages-volume:
+  gitlab-postgres-volume:
   ldap-data-volume:
   ldap-config-volume:
