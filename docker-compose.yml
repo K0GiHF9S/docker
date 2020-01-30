@@ -356,6 +356,67 @@ services:
     volumes:
       - keycloak-postgres-volume:/var/lib/postgresql/data
 
+  es01:
+    restart: always
+    build: recipes/elasticsearch
+    image: k0gihf9s/elasticsearch:7.5.2
+    environment:
+      - TZ=Asia/Tokyo
+      # - discovery.type=single-node
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02
+      - cluster.initial_master_nodes=es01,es02
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "path.repo=/usr/share/elasticsearch/backup"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es01-volume:/usr/share/elasticsearch/data
+      - ./data/elasticsearch/backup:/usr/share/elasticsearch/backup
+      # - ./recipes/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+  es02:
+    restart: always
+    build: recipes/elasticsearch
+    image: k0gihf9s/elasticsearch:7.5.2
+    environment:
+      - TZ=Asia/Tokyo
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01
+      - cluster.initial_master_nodes=es01,es02
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "path.repo=/usr/share/elasticsearch/backup"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es02-volume:/usr/share/elasticsearch/data
+      - ./data/elasticsearch/backup:/usr/share/elasticsearch/backup
+      # - ./recipes/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+  logstash:
+    restart: always
+    build: recipes/logstash
+    image: k0gihf9s/logstash:7.5.2
+    volumes:
+      - ./recipes/logstash/pipeline:/usr/share/logstash/pipeline
+    environment:
+      - TZ=Asia/Tokyo
+  kibana:
+    restart: always
+    build: recipes/kibana
+    image: k0gihf9s/kibana:7.5.2
+    volumes:
+      - ./recipes/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    environment:
+      - TZ=Asia/Tokyo
+      - I18N_LOCALE="ja-JP"
+
   nginx:
     restart: always
     image: nginx:1.16.0-alpine
@@ -379,3 +440,5 @@ volumes:
   ldap-config-volume:
   sonarqube-postgres-volume:
   keycloak-postgres-volume:
+  es01-volume:
+  es02-volume:
