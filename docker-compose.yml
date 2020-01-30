@@ -64,7 +64,7 @@ services:
   gitlab:
     restart: always
     build: recipes/gitlab
-    image: k0gihf9s/gitlab:11.11.3
+    image: k0gihf9s/gitlab:12.1.2
     volumes:
       - ./data/gitlab/gitlab/backups:/home/git/data/backups
       - ./data/gitlab/gitlab/builds:/home/git/data/builds
@@ -239,7 +239,7 @@ services:
   mattermost:
     restart: always
     build: recipes/mattermost
-    image: k0gihf9s/mattermost:5.12.0
+    image: k0gihf9s/mattermost:5.12.4
     volumes:
       - ./data/mattermost/mattermost/config:/mattermost/config
       - ./data/mattermost/mattermost/data:/mattermost/data
