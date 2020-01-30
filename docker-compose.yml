@@ -297,6 +297,36 @@ services:
       - PHPLDAPADMIN_LDAP_HOSTS=ldap
       - PHPLDAPADMIN_HTTPS=false
 
+  keycloak:
+    restart: always
+    build: recipes/keycloak
+    image: k0gihf9s/keycloak:6.0.1
+    environment:
+      - TZ=Asia/Tokyo
+
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=M0I6U2WVU8KFSlGqf0Ob
+      - PROXY_ADDRESS_FORWARDING=true
+      - JDBC_PARAMS=useSSL=false
+      - DB_VENDOR=POSTGRES
+      - DB_ADDR=keycloak-postgres
+      - DB_DATABASE=keycloak
+      - DB_USER=keycloak
+      - DB_SCHEMA=public
+      - DB_PASSWORD=keycloak_password
+
+  keycloak-postgres:
+    restart: always
+    image: postgres:11.4-alpine
+    environment:
+      - TZ=Asia/Tokyo
+
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak_password
+      - POSTGRES_DB=keycloak
+    volumes:
+      - keycloak-postgres-volume:/var/lib/postgresql/data
+
   nginx:
     restart: always
     image: nginx:1.16.0-alpine
@@ -318,3 +348,4 @@ volumes:
   gitlab-postgres-volume:
   ldap-data-volume:
   ldap-config-volume:
+  keycloak-postgres-volume:
