@@ -297,6 +297,35 @@ services:
       - PHPLDAPADMIN_LDAP_HOSTS=ldap
       - PHPLDAPADMIN_HTTPS=false
 
+  sonarqube:
+    restart: always
+    image: sonarqube:7.8-community
+    volumes:
+      - ./data/sonarqube/sonarqube/config:/opt/sonarqube/conf
+      - ./data/sonarqube/sonarqube/data:/opt/sonarqube/data
+      - ./data/sonarqube/sonarqube/logs:/opt/sonarqube/logs
+      - ./data/sonarqube/sonarqube/plugins:/opt/sonarqube/extensions
+    environment:
+      - sonar.jdbc.username=sonarqube
+      - sonar.jdbc.password=sonarqube_password
+      - sonar.jdbc.url=jdbc:postgresql://sonarqube-postgres:5432/sonarqube?useUnicode=true&characterEncoding=utf8&useSSL=false&rewriteBatchedStatements=true
+      - TZ=Asia/Tokyo
+    command: >
+      -Dsonar.web.context=/sonarqube
+      -Dsonar.web.port=9000
+
+  sonarqube-postgres:
+    restart: always
+    image: postgres:11.4-alpine
+    environment:
+      - TZ=Asia/Tokyo
+
+      - POSTGRES_USER=sonarqube
+      - POSTGRES_PASSWORD=sonarqube_password
+      - POSTGRES_DB=sonarqube
+    volumes:
+      - sonarqube-postgres-volume:/var/lib/postgresql/data
+
   keycloak:
     restart: always
     build: recipes/keycloak
@@ -348,4 +377,5 @@ volumes:
   gitlab-postgres-volume:
   ldap-data-volume:
   ldap-config-volume:
+  sonarqube-postgres-volume:
   keycloak-postgres-volume:
