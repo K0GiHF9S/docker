@@ -25,7 +25,7 @@ services:
 
   gitlab-postgres:
     restart: always
-    image: postgres:11.4-alpine
+    image: postgres:11.6-alpine
     environment:
       - TZ=Asia/Tokyo
 
@@ -34,10 +34,9 @@ services:
       - POSTGRES_DB=gitlabhq_production
     volumes:
       - gitlab-postgres-volume:/var/lib/postgresql/data
-
   gitlab-redis:
     restart: always
-    image: redis:5.0.4-alpine
+    image: redis:5.0.7-alpine
     command:
       - --loglevel warning
     sysctls:
@@ -46,7 +45,6 @@ services:
       - ./data/gitlab/redis:/data
     environment:
       - TZ=Asia/Tokyo
-
   gitlab-ci-multi-runner:
     restart: always
     build: recipes/gitlab-ci-multi-runner
@@ -57,14 +55,13 @@ services:
       - TZ=Asia/Tokyo
 
       - CI_SERVER_URL=http://gitlab/gitlab
-      - RUNNER_TOKEN=XvhgTk3ecqp1Vt1aoh1B
+      - RUNNER_TOKEN=6bKR36scJ8hxcuj8nFGy
       - RUNNER_DESCRIPTION=runner1
       - RUNNER_EXECUTOR=shell
-
   gitlab:
     restart: always
     build: recipes/gitlab
-    image: k0gihf9s/gitlab:12.1.2
+    image: k0gihf9s/gitlab:12.7.5
     volumes:
       - ./data/gitlab/gitlab/backups:/home/git/data/backups
       - ./data/gitlab/gitlab/builds:/home/git/data/builds
@@ -153,7 +150,7 @@ services:
 
   redmine-mysql:
     restart: always
-    image: mysql:5.7.22
+    image: mysql:5.7.29
     environment:
       - TZ=Asia/Tokyo
 
@@ -164,17 +161,15 @@ services:
     volumes:
       - ./data/redmine/mysql:/var/lib/mysql
       - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-
   redmine-memcached:
     restart: always
-    image: memcached:1.5.14-alpine
+    image: memcached:1.5.21-alpine
     environment:
       - TZ=Asia/Tokyo
-
   redmine:
     restart: always
     build: recipes/redmine
-    image: k0gihf9s/redmine:4.0.4
+    image: k0gihf9s/redmine:4.1.0
     volumes:
       - ./data/redmine/redmine:/home/redmine/data
       - ./data/gitlab/gitlab/repositories:/git
@@ -226,7 +221,7 @@ services:
   jenkins:
     restart: always
     build: recipes/jenkins
-    image: k0gihf9s/jenkins:1.17.0-bcc31d32159f
+    image: k0gihf9s/jenkins:1.22.0
     environment:
       - TZ=Asia/Tokyo
 
@@ -239,7 +234,7 @@ services:
   mattermost:
     restart: always
     build: recipes/mattermost
-    image: k0gihf9s/mattermost:5.12.4
+    image: k0gihf9s/mattermost:5.19.0
     volumes:
       - ./data/mattermost/mattermost/config:/mattermost/config
       - ./data/mattermost/mattermost/data:/mattermost/data
@@ -254,10 +249,9 @@ services:
       - MM_SQLSETTINGS_DRIVERNAME=mysql
       - MM_SQLSETTINGS_DATASOURCE=mmuser:mmuser_password@tcp(mattermost-mysql:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s
       - TZ=Asia/Tokyo
-
   mattermost-mysql:
     restart: always
-    image: mysql:5.7.22
+    image: mysql:5.7.29
     environment:
       - TZ=Asia/Tokyo
 
@@ -270,7 +264,7 @@ services:
       - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
 
   ldap:
-    image: osixia/openldap-backup:1.2.4
+    image: osixia/openldap-backup:1.3.0
     volumes:
       - ./data/ldap/backup:/data/backup
       - ldap-data-volume:/var/lib/ldap
@@ -286,7 +280,6 @@ services:
       - LDAP_BACKUP_CONFIG_CRON_EXP=0 4 1 * *
       - LDAP_BACKUP_DATA_CRON_EXP=0 4 1 * *z
       - LDAP_BACKUP_TTL=15
-
   phpldapadmin:
     image: osixia/phpldapadmin:0.7.2
     depends_on:
@@ -299,7 +292,7 @@ services:
 
   sonarqube:
     restart: always
-    image: sonarqube:7.8-community
+    image: sonarqube:7.9-community
     volumes:
       - ./data/sonarqube/sonarqube/config:/opt/sonarqube/conf
       - ./data/sonarqube/sonarqube/data:/opt/sonarqube/data
@@ -316,7 +309,7 @@ services:
 
   sonarqube-postgres:
     restart: always
-    image: postgres:11.4-alpine
+    image: postgres:11.6-alpine
     environment:
       - TZ=Asia/Tokyo
 
@@ -329,7 +322,7 @@ services:
   keycloak:
     restart: always
     build: recipes/keycloak
-    image: k0gihf9s/keycloak:6.0.1
+    image: k0gihf9s/keycloak:8.0.1
     environment:
       - TZ=Asia/Tokyo
 
@@ -346,7 +339,7 @@ services:
 
   keycloak-postgres:
     restart: always
-    image: postgres:11.4-alpine
+    image: postgres:11.6-alpine
     environment:
       - TZ=Asia/Tokyo
 
@@ -443,7 +436,7 @@ services:
 
   nginx:
     restart: always
-    image: nginx:1.16.0-alpine
+    image: nginx:1.17.8-alpine
     ports:
       - '8080:80'
       - '2222:22'

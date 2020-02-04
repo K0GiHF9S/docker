@@ -1,4 +1,4 @@
-FROM sameersbn/redmine:4.0.4
+FROM sameersbn/redmine:4.1.0
 
 COPY runtime.patch /tmp
 

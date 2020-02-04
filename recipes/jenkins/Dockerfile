@@ -1,4 +1,4 @@
-FROM jenkinsci/blueocean:1.17.0-bcc31d32159f
+FROM jenkinsci/blueocean:1.22.0
 
 USER root
 RUN apk --no-cache add cppcheck \
@@ -9,7 +9,7 @@ RUN apk --no-cache add cppcheck \
                     cloc
 
 RUN cd /tmp && \
-    wget -O IPAfont.zip https://ipafont.ipa.go.jp/old/ipafont/IPAfont00303.php && \
+    wget -O IPAfont.zip https://ipafont.ipa.go.jp/IPAfont/IPAfont00303.zip && \
     unzip IPAfont.zip && \
     mkdir -p /usr/share/fonts/opentype/ipafont-gothic && \
     mkdir -p /usr/share/fonts/opentype/ipafont-mincho && \
