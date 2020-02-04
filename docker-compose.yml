@@ -417,6 +417,30 @@ services:
       - TZ=Asia/Tokyo
       - I18N_LOCALE="ja-JP"
 
+  testlink-mariadb:
+    restart: always
+    image: bitnami/mariadb:10.2.31
+    environment:
+      - MARIADB_USER=bn_testlink
+      - MARIADB_DATABASE=bitnami_testlink
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - ./data/testlink/mariadb:/bitnami/mariadb
+  testlink:
+    restart: always
+    build: recipes/testlink
+    image: k0gihf9s/testlink:1.9.20
+    environment:
+      - TZ=Asia/Tokyo
+      - TESTLINK_LANGUAGE=ja_JP
+      - MARIADB_HOST=testlink-mariadb
+      - MARIADB_PORT_NUMBER=3306
+      - TESTLINK_DATABASE_USER=bn_testlink
+      - TESTLINK_DATABASE_NAME=bitnami_testlink
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - ./data/testlink/testlink:/bitnami/testlink
+
   nginx:
     restart: always
     image: nginx:1.16.0-alpine
