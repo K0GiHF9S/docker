@@ -281,7 +281,8 @@ services:
       - LDAP_BACKUP_DATA_CRON_EXP=0 4 1 * *z
       - LDAP_BACKUP_TTL=15
   phpldapadmin:
-    image: osixia/phpldapadmin:0.7.2
+    build: recipes/phpldapadmin
+    image: k0gihf9s/phpldapadmin:0.9.0
     depends_on:
       - ldap
     environment:
