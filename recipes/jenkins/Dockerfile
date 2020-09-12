@@ -1,13 +1,6 @@
-FROM jenkinsci/blueocean:1.22.0
+FROM jenkinsci/blueocean:1.23.2
 
 USER root
-RUN apk --no-cache add cppcheck \
-                    openjdk8 \
-                    doxygen \
-                    graphviz \
-                    python \
-                    cloc
-
 RUN cd /tmp && \
     wget -O IPAfont.zip https://ipafont.ipa.go.jp/IPAfont/IPAfont00303.zip && \
     unzip IPAfont.zip && \
@@ -23,12 +16,18 @@ RUN cd /tmp && \
     ln -s /usr/share/fonts/opentype/ipafont-mincho/ipam.ttf && \
     ln -s /usr/share/fonts/opentype/ipafont-mincho/ipamp.ttf
 
-RUN wget https://bootstrap.pypa.io/get-pip.py && \
-    python get-pip.py && \
-    pip install python-redmine && \
-    pip install python-gitlab && \
-    pip install lizard && \
-    pip install jinja2 && \
-    rm get-pip.py
+RUN apk --no-cache add cppcheck \
+                    openjdk8 \
+                    doxygen \
+                    graphviz \
+                    python3-dev \
+                    py3-pip \
+                    cloc && \
+    pip3 install --upgrade pip
+
+RUN pip3 install python-redmine && \
+    pip3 install python-gitlab && \
+    pip3 install lizard && \
+    pip3 install jinja2
 
 USER jenkins

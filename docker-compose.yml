@@ -1,18 +1,5 @@
 version: '3.6'
 services:
-  backup:
-    restart: always
-    build: ./recipes/backup
-    image: k0gihf9s/backup:1.00
-    volumes:
-      - ./data/other/backups:/var/backup
-      - ./data/jenkins/jenkins:/var/target/monthly/jenkins
-      - ./data/gitlab/gitlab/shared/lfs-objects:/var/target/monthly/gitlab/lfs-objects
-      - ./data/gitlab/gitlab/.ssh:/var/target/monthly/gitlab/.ssh
-      - gitlab-ssh-volume:/var/target/monthly/gitlab/ssh
-    environment:
-      - TZ=Asia/Tokyo
-
   privileged:
     restart: always
     image: busybox:1.30.1
@@ -25,15 +12,16 @@ services:
 
   gitlab-postgres:
     restart: always
-    image: postgres:11.6-alpine
+    image: postgres:12.3-alpine
     environment:
       - TZ=Asia/Tokyo
 
       - POSTGRES_USER=gitlab
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=gitlabhq_production
+
     volumes:
-      - gitlab-postgres-volume:/var/lib/postgresql/data
+      - gitlab-postgres-volume-12:/var/lib/postgresql/data
   gitlab-redis:
     restart: always
     image: redis:5.0.7-alpine
@@ -47,36 +35,41 @@ services:
       - TZ=Asia/Tokyo
   gitlab-ci-multi-runner:
     restart: always
-    build: recipes/gitlab-ci-multi-runner
-    image: k0gihf9s/gitlab-ci-multi-runner:11.9.1
+    image: gitlab/gitlab-runner:alpine-v13.1.3
     volumes:
-      - ./data/gitlab/gitlab-ci-multi-runner:/home/gitlab_ci_multi_runner/data
+      - ./data/gitlab/gitlab-ci-multi-runner/data:/home/gitlab-runner
+      - ./data/gitlab/gitlab-ci-multi-runner/config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - TZ=Asia/Tokyo
 
-      - CI_SERVER_URL=http://gitlab/gitlab
-      - RUNNER_TOKEN=6bKR36scJ8hxcuj8nFGy
-      - RUNNER_DESCRIPTION=runner1
-      - RUNNER_EXECUTOR=shell
+      - REGISTER_NON_INTERACTIVE=true
+      - CI_SERVER_URL=http://192.168.11.7/gitlab/
+      - REGISTRATION_TOKEN=dsojDECUB8jeXaZzY4Gp
+      - RUNNER_NAME=runner1
+      - RUNNER_EXECUTOR=docker
+      - RUNNER_TAG_LIST=docker
+      - RUNNER_LIMIT=1
+      - DOCKER_IMAGE=alpine:latest
+      - DOCKER_VOLUMES=/var/run/docker.sock:/var/run/docker.sock
   gitlab:
     restart: always
     build: recipes/gitlab
-    image: k0gihf9s/gitlab:12.7.5
+    image: k0gihf9s/gitlab:13.3.4
     volumes:
-      - ./data/gitlab/gitlab/backups:/home/git/data/backups
-      - ./data/gitlab/gitlab/builds:/home/git/data/builds
-      - ./data/gitlab/gitlab/repositories:/home/git/data/repositories
-      - ./data/gitlab/gitlab/shared/lfs-objects:/home/git/data/shared/lfs-objects
-      - ./data/gitlab/gitlab/tmp:/home/git/data/tmp
-      - ./data/gitlab/gitlab/uploads:/home/git/data/uploads
-      - gitlab-dotssh-volume:/home/git/data/.ssh
-      - gitlab-ssh-volume:/home/git/data/ssh
-      - gitlab-artifacts-volume:/home/git/data/shared/artifacts
-      - gitlab-pages-volume:/home/git/data/shared/pages
+      - ./data/gitlab/gitlab/backups:/backups
+      - ./data/gitlab/gitlab/repositories:/repositories
+      - ./data/gitlab/gitlab/lfs-objects:/lfs
+      - gitlab-data-volume:/home/git/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - DEBUG=false
       - TZ=Asia/Tokyo
       - GITLAB_TIMEZONE=Tokyo
+
+      - GITLAB_REPOS_DIR=/repositories
+      - GITLAB_BACKUP_DIR=/backups
+      - GITLAB_LFS_OBJECTS_DIR=/lfs
 
       - DB_ADAPTER=postgresql
       - DB_HOST=gitlab-postgres
@@ -148,9 +141,13 @@ services:
       - OAUTH_REDMINE_API_SECRET=7n3jbUDlqqJoOnwEKEU2sfMIWOZlkEG8wRuTyw4v
       - OAUTH_REDMINE_DOMAIN=http://192.168.11.7/redmine
 
+      - NGINX_REAL_IP_RECURSIVE=on
+      - NGINX_REAL_IP_TRUSTED_ADDRESSES=172.18.0.0/16
+
   redmine-mysql:
     restart: always
-    image: mysql:5.7.29
+    build: recipes/mysql
+    image: k0gihf9s/mysql:5.7.29
     environment:
       - TZ=Asia/Tokyo
 
@@ -160,7 +157,6 @@ services:
       - MYSQL_DATABASE=redmine_production
     volumes:
       - ./data/redmine/mysql:/var/lib/mysql
-      - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
   redmine-memcached:
     restart: always
     image: memcached:1.5.21-alpine
@@ -169,7 +165,7 @@ services:
   redmine:
     restart: always
     build: recipes/redmine
-    image: k0gihf9s/redmine:4.1.0
+    image: k0gihf9s/redmine:4.1.1-6
     volumes:
       - ./data/redmine/redmine:/home/redmine/data
       - ./data/gitlab/gitlab/repositories:/git
@@ -218,10 +214,13 @@ services:
       - IMAP_SSL=true
       - IMAP_INTERVAL=30
 
+      - NGINX_REAL_IP_RECURSIVE=on
+      - NGINX_REAL_IP_TRUSTED_ADDRESSES=172.18.0.0/16
+
   jenkins:
     restart: always
     build: recipes/jenkins
-    image: k0gihf9s/jenkins:1.22.0
+    image: k0gihf9s/jenkins:1.23.2
     environment:
       - TZ=Asia/Tokyo
 
@@ -323,7 +322,7 @@ services:
   keycloak:
     restart: always
     build: recipes/keycloak
-    image: k0gihf9s/keycloak:8.0.1
+    image: k0gihf9s/keycloak:11.0.0
     environment:
       - TZ=Asia/Tokyo
 
@@ -449,11 +448,8 @@ services:
       - TZ=Asia/Tokyo
 
 volumes:
-  gitlab-dotssh-volume:
-  gitlab-ssh-volume:
-  gitlab-artifacts-volume:
-  gitlab-pages-volume:
-  gitlab-postgres-volume:
+  gitlab-data-volume:
+  gitlab-postgres-volume-12:
   ldap-data-volume:
   ldap-config-volume:
   sonarqube-postgres-volume:
