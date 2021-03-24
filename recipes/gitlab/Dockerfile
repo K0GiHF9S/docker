@@ -1,4 +1,4 @@
-FROM sameersbn/gitlab:13.3.4
+FROM sameersbn/gitlab:13.9.4
 
 RUN DEPS='patch curl' \
     && apt-get update && apt-get -y --no-install-recommends install $DEPS \
@@ -10,10 +10,9 @@ RUN cd ${GITLAB_RUNTIME_DIR} \
     && rm /tmp/docker.patch
 
 RUN cd ${GITLAB_INSTALL_DIR} \
-    && sed -i -e "/^gem 'rack-oauth2'/a gem 'omniauth-redmine'" Gemfile \
-    && mkdir ${GITLAB_LOG_DIR}/gitlab \
-    && sudo -u git -H bundle install -j$(nproc) --without development test aws --path vendor/bundle --no-deployment \
-    && mkdir ${GITLAB_HOME}/repositories \
+    && sudo -u git -H bundle add omniauth-redmine --version "~> 0.0.2" \
+    && mkdir -p ${GITLAB_LOG_DIR}/gitlab \
+    && mkdir -p ${GITLAB_HOME}/repositories \
     && bundle exec rake assets:precompile RAILS_ENV=production \
     && rm -rf ${GITLAB_LOG_DIR}/gitlab \
     && rm -rf ${GITLAB_HOME}/repositories \

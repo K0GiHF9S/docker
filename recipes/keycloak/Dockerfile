@@ -1,4 +1,4 @@
-FROM jboss/keycloak:11.0.0
+FROM jboss/keycloak:12.0.2
 
 USER jboss
 

@@ -8,6 +8,7 @@ services:
       sh -c
       "echo never | tee /sys/kernel/mm/transparent_hugepage/enabled;
       echo never | tee /sys/kernel/mm/transparent_hugepage/defrag;
+      sysctl -w vm.max_map_count=262144;
       while true; do sleep 10000d; done;"
 
   gitlab-postgres:
@@ -21,7 +22,7 @@ services:
       - POSTGRES_DB=gitlabhq_production
 
     volumes:
-      - gitlab-postgres-volume-12:/var/lib/postgresql/data
+      - ./data/gitlab/gitlab/postgres12:/var/lib/postgresql/data
   gitlab-redis:
     restart: always
     image: redis:5.0.7-alpine
@@ -35,7 +36,7 @@ services:
       - TZ=Asia/Tokyo
   gitlab-ci-multi-runner:
     restart: always
-    image: gitlab/gitlab-runner:alpine-v13.1.3
+    image: gitlab/gitlab-runner:alpine-v13.8.0
     volumes:
       - ./data/gitlab/gitlab-ci-multi-runner/data:/home/gitlab-runner
       - ./data/gitlab/gitlab-ci-multi-runner/config:/etc/gitlab-runner
@@ -55,12 +56,12 @@ services:
   gitlab:
     restart: always
     build: recipes/gitlab
-    image: k0gihf9s/gitlab:13.3.4
+    image: k0gihf9s/gitlab:13.9.4
     volumes:
       - ./data/gitlab/gitlab/backups:/backups
       - ./data/gitlab/gitlab/repositories:/repositories
       - ./data/gitlab/gitlab/lfs-objects:/lfs
-      - gitlab-data-volume:/home/git/data
+      - ./data/gitlab/gitlab/data:/home/git/data
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - DEBUG=false
@@ -165,7 +166,7 @@ services:
   redmine:
     restart: always
     build: recipes/redmine
-    image: k0gihf9s/redmine:4.1.1-6
+    image: k0gihf9s/redmine:4.1.1-9
     volumes:
       - ./data/redmine/redmine:/home/redmine/data
       - ./data/gitlab/gitlab/repositories:/git
@@ -220,7 +221,7 @@ services:
   jenkins:
     restart: always
     build: recipes/jenkins
-    image: k0gihf9s/jenkins:1.23.2
+    image: k0gihf9s/jenkins:1.24.4
     environment:
       - TZ=Asia/Tokyo
 
@@ -263,11 +264,12 @@ services:
       - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
 
   ldap:
+    restart: always
     image: osixia/openldap-backup:1.3.0
     volumes:
       - ./data/ldap/backup:/data/backup
-      - ldap-data-volume:/var/lib/ldap
-      - ldap-config-volume:/etc/ldap/slapd.d
+      - ./data/ldap/data:/var/lib/ldap
+      - ./data/ldap/config:/etc/ldap/slapd.d
     environment:
       - TZ=Asia/Tokyo
 
@@ -280,6 +282,7 @@ services:
       - LDAP_BACKUP_DATA_CRON_EXP=0 4 1 * *z
       - LDAP_BACKUP_TTL=15
   phpldapadmin:
+    restart: always
     build: recipes/phpldapadmin
     image: k0gihf9s/phpldapadmin:0.9.0
     depends_on:
@@ -292,7 +295,7 @@ services:
 
   sonarqube:
     restart: always
-    image: sonarqube:7.9-community
+    image: sonarqube:8.6.1-community
     volumes:
       - ./data/sonarqube/sonarqube/config:/opt/sonarqube/conf
       - ./data/sonarqube/sonarqube/data:/opt/sonarqube/data
@@ -309,7 +312,7 @@ services:
 
   sonarqube-postgres:
     restart: always
-    image: postgres:11.6-alpine
+    image: postgres:12.3-alpine
     environment:
       - TZ=Asia/Tokyo
 
@@ -317,12 +320,12 @@ services:
       - POSTGRES_PASSWORD=sonarqube_password
       - POSTGRES_DB=sonarqube
     volumes:
-      - sonarqube-postgres-volume:/var/lib/postgresql/data
+      - ./data/sonarqube/postgres12:/var/lib/postgresql/data
 
   keycloak:
     restart: always
     build: recipes/keycloak
-    image: k0gihf9s/keycloak:11.0.0
+    image: k0gihf9s/keycloak:12.0.2
     environment:
       - TZ=Asia/Tokyo
 
@@ -339,7 +342,7 @@ services:
 
   keycloak-postgres:
     restart: always
-    image: postgres:11.6-alpine
+    image: postgres:12.3-alpine
     environment:
       - TZ=Asia/Tokyo
 
@@ -347,12 +350,12 @@ services:
       - POSTGRES_PASSWORD=keycloak_password
       - POSTGRES_DB=keycloak
     volumes:
-      - keycloak-postgres-volume:/var/lib/postgresql/data
+      - ./data/keycloak/postgres12:/var/lib/postgresql/data
 
   es01:
     restart: always
     build: recipes/elasticsearch
-    image: k0gihf9s/elasticsearch:7.5.2
+    image: k0gihf9s/elasticsearch:7.10.1
     environment:
       - TZ=Asia/Tokyo
       # - discovery.type=single-node
@@ -368,13 +371,13 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - es01-volume:/usr/share/elasticsearch/data
+      - ./data/es01:/usr/share/elasticsearch/data
       - ./data/elasticsearch/backup:/usr/share/elasticsearch/backup
       # - ./recipes/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
   es02:
     restart: always
     build: recipes/elasticsearch
-    image: k0gihf9s/elasticsearch:7.5.2
+    image: k0gihf9s/elasticsearch:7.10.1
     environment:
       - TZ=Asia/Tokyo
       - node.name=es02
@@ -389,13 +392,13 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - es02-volume:/usr/share/elasticsearch/data
+      - ./data/es02:/usr/share/elasticsearch/data
       - ./data/elasticsearch/backup:/usr/share/elasticsearch/backup
       # - ./recipes/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
   logstash:
     restart: always
     build: recipes/logstash
-    image: k0gihf9s/logstash:7.5.2
+    image: k0gihf9s/logstash:7.10.1
     volumes:
       - ./recipes/logstash/pipeline:/usr/share/logstash/pipeline
     environment:
@@ -403,7 +406,7 @@ services:
   kibana:
     restart: always
     build: recipes/kibana
-    image: k0gihf9s/kibana:7.5.2
+    image: k0gihf9s/kibana:7.10.1
     volumes:
       - ./recipes/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
     environment:
@@ -438,21 +441,12 @@ services:
     restart: always
     image: nginx:1.17.8-alpine
     ports:
-      - '8080:80'
-      - '2222:22'
-      - '60000:60500'
+      - '65124:80'
+      - '54289:22'
+      - '63541:60500'
+      - '443:443'
     volumes:
       - ./recipes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./recipes/nginx/html:/usr/share/nginx/html:ro
     environment:
       - TZ=Asia/Tokyo
-
-volumes:
-  gitlab-data-volume:
-  gitlab-postgres-volume-12:
-  ldap-data-volume:
-  ldap-config-volume:
-  sonarqube-postgres-volume:
-  keycloak-postgres-volume:
-  es01-volume:
-  es02-volume:

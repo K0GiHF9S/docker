@@ -1,8 +1,8 @@
-FROM jenkinsci/blueocean:1.23.2
+FROM jenkinsci/blueocean:1.24.4
 
 USER root
 RUN cd /tmp && \
-    wget -O IPAfont.zip https://ipafont.ipa.go.jp/IPAfont/IPAfont00303.zip && \
+    wget -O IPAfont.zip http://moji.or.jp/wp-content/ipafont/IPAfont/IPAfont00303.zip && \
     unzip IPAfont.zip && \
     mkdir -p /usr/share/fonts/opentype/ipafont-gothic && \
     mkdir -p /usr/share/fonts/opentype/ipafont-mincho && \
