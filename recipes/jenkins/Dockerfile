@@ -1,4 +1,5 @@
-FROM jenkinsci/blueocean:1.24.4
+ARG JENKINS_TAG
+FROM jenkinsci/blueocean:${JENKINS_TAG}
 
 USER root
 RUN cd /tmp && \

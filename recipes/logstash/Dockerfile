@@ -1,4 +1,5 @@
-FROM docker.elastic.co/logstash/logstash:7.10.1
+ARG ELASTICSEARCH_TAG
+FROM docker.elastic.co/logstash/logstash:${ELASTICSEARCH_TAG}
 
 RUN cd /usr/share/logstash && \
     curl -L https://downloads.mysql.com/archives/get/p/3/file/mysql-connector-java-8.0.18.tar.gz | tar zx && \

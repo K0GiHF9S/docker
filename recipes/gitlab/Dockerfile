@@ -1,4 +1,5 @@
-FROM sameersbn/gitlab:13.9.4
+ARG GITLAB_TAG
+FROM sameersbn/gitlab:${GITLAB_TAG}
 
 RUN DEPS='patch curl' \
     && apt-get update && apt-get -y --no-install-recommends install $DEPS \

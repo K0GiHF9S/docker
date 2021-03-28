@@ -1,6 +1,7 @@
-FROM osixia/phpldapadmin:0.9.0
+ARG PHPLDAPADMIN_TAG
+FROM osixia/phpldapadmin:${PHPLDAPADMIN_TAG}
 
-RUN sed -r "s/^(\\\$servers = new Datastore\(\);)/\1\n\$config->custom->appearance['language'] = 'ja_JP';/g" -i /container/service/phpldapadmin/assets/config/config.php && \
+RUN echo "\$config->custom->appearance['language'] = 'ja_JP';" >> /container/service/phpldapadmin/assets/config/config.php && \
     echo "ja_JP.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen --purge ja_JP.UTF-8 && \
     dpkg-reconfigure -f noninteractive locales && \

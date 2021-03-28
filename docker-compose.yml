@@ -1,4 +1,4 @@
-version: '3.6'
+version: "2"
 services:
   privileged:
     restart: always
@@ -13,19 +13,27 @@ services:
 
   gitlab-postgres:
     restart: always
-    image: postgres:12.3-alpine
+    image: postgres:${GITLAB_POSTGRES_TAG}
+    healthcheck:
+      test: "pg_isready -U gitlab"
+      interval: 1m
+      timeout: 5s
+      retries: 5
     environment:
       - TZ=Asia/Tokyo
-
       - POSTGRES_USER=gitlab
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=gitlabhq_production
-
     volumes:
       - ./data/gitlab/gitlab/postgres12:/var/lib/postgresql/data
   gitlab-redis:
     restart: always
-    image: redis:5.0.7-alpine
+    image: redis:${GITLAB_REDIS_TAG}
+    healthcheck:
+      test: "redis-cli ping"
+      interval: 1m
+      timeout: 5s
+      retries: 5
     command:
       - --loglevel warning
     sysctls:
@@ -36,16 +44,20 @@ services:
       - TZ=Asia/Tokyo
   gitlab-ci-multi-runner:
     restart: always
-    image: gitlab/gitlab-runner:alpine-v13.8.0
+    image: gitlab/gitlab-runner:${GITLAB_RUNNER_TAG}
+    healthcheck:
+      test: "gitlab-runner health-check"
+      interval: 1m
+      timeout: 5s
+      retries: 5
     volumes:
       - ./data/gitlab/gitlab-ci-multi-runner/data:/home/gitlab-runner
       - ./data/gitlab/gitlab-ci-multi-runner/config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - TZ=Asia/Tokyo
-
       - REGISTER_NON_INTERACTIVE=true
-      - CI_SERVER_URL=http://192.168.11.7/gitlab/
+      - CI_SERVER_URL=http://${SERVER_NAME}/gitlab/
       - REGISTRATION_TOKEN=dsojDECUB8jeXaZzY4Gp
       - RUNNER_NAME=runner1
       - RUNNER_EXECUTOR=docker
@@ -55,10 +67,19 @@ services:
       - DOCKER_VOLUMES=/var/run/docker.sock:/var/run/docker.sock
   gitlab:
     restart: always
-    build: recipes/gitlab
-    image: k0gihf9s/gitlab:13.9.4
+    image: k0gihf9s/gitlab:${GITLAB_TAG}
+    build:
+      context: ./recipes/gitlab
+      args:
+        GITLAB_TAG: ${GITLAB_TAG}
+    healthcheck:
+      test: "healthcheck"
+      interval: 1m
+      timeout: 5s
+      retries: 5
+      start_period: 2m
     volumes:
-      - ./data/gitlab/gitlab/backups:/backups
+      - ./backup/gitlab:/backups
       - ./data/gitlab/gitlab/repositories:/repositories
       - ./data/gitlab/gitlab/lfs-objects:/lfs
       - ./data/gitlab/gitlab/data:/home/git/data
@@ -89,7 +110,7 @@ services:
       - GITLAB_SECRETS_SECRET_KEY_BASE=Fpg3dxXqcWwMtzTrJFVCfFkcspJsr9NH9MqjmsqgcRxTJ7VC4r7CwjsmwstVcWLC
       - GITLAB_SECRETS_OTP_KEY_BASE=RcgRF3NpcFtXXHgbmqTzL3RL3PWNczqKpXX73CRJgTnCmsbfftzvMKrjVz3z3qsb
 
-      - GITLAB_HOST=192.168.11.7
+      - GITLAB_HOST=${SERVER_NAME}
       - GITLAB_PORT=80
       - GITLAB_SSH_PORT=22
       - GITLAB_RELATIVE_URL_ROOT=/gitlab
@@ -124,7 +145,7 @@ services:
       - IMAP_STARTTLS=false
 
       - GITLAB_PAGES_ENABLED=true
-      - GITLAB_PAGES_DOMAIN=hswinter.mydns.jp
+      - GITLAB_PAGES_DOMAIN=${SERVER_NAME}
       - GITLAB_PAGES_HTTPS=false
       - GITLAB_PAGES_PORT=80
       - GITLAB_PAGES_EXTERNAL_HTTP=:8010
@@ -135,20 +156,25 @@ services:
       - OAUTH_AUTO_LINK_LDAP_USER=false
       - OAUTH_AUTO_LINK_SAML_USER=false
 
-      - GITLAB_MATTERMOST_ENABLED=true
-      - GITLAB_MATTERMOST_URL=http://192.168.11.7/mattermost
-
-      - OAUTH_REDMINE_API_KEY=qrVKexnOqa2IL0oee50kCBUDBcqL1nOwpQXGpt4L
-      - OAUTH_REDMINE_API_SECRET=7n3jbUDlqqJoOnwEKEU2sfMIWOZlkEG8wRuTyw4v
-      - OAUTH_REDMINE_DOMAIN=http://192.168.11.7/redmine
+      - OAUTH_REDMINE_API_KEY=WY24Y0BgXE2AsrqmKz2hz6ExIv7HyvsMfWOceap7
+      - OAUTH_REDMINE_API_SECRET=RCKjeysimmioM8tyOU46UICS745O68GzQ5Wl1Ztc
+      - OAUTH_REDMINE_DOMAIN=http://${SERVER_NAME}/redmine
 
       - NGINX_REAL_IP_RECURSIVE=on
       - NGINX_REAL_IP_TRUSTED_ADDRESSES=172.18.0.0/16
 
   redmine-mysql:
     restart: always
-    build: recipes/mysql
-    image: k0gihf9s/mysql:5.7.29
+    image: k0gihf9s/mysql:${REDMINE_MYSQL_TAG}
+    build:
+      context: ./recipes/mysql
+      args:
+        REDMINE_MYSQL_TAG: ${REDMINE_MYSQL_TAG}
+    healthcheck:
+      test: "mysqladmin ping -u $$MYSQL_USER --password=$$MYSQL_PASSWORD"
+      interval: 1m
+      timeout: 5s
+      retries: 5
     environment:
       - TZ=Asia/Tokyo
 
@@ -160,14 +186,23 @@ services:
       - ./data/redmine/mysql:/var/lib/mysql
   redmine-memcached:
     restart: always
-    image: memcached:1.5.21-alpine
+    image: memcached:${REDMINE_MEMCACHED_TAG}
+    healthcheck:
+      test: "nc -z -w 1 localhost 11211"
+      interval: 1m
+      timeout: 5s
+      retries: 5
     environment:
       - TZ=Asia/Tokyo
   redmine:
     restart: always
-    build: recipes/redmine
-    image: k0gihf9s/redmine:4.1.1-9
+    image: k0gihf9s/redmine:${REDMINE_TAG}
+    build:
+      context: ./recipes/redmine
+      args:
+        REDMINE_TAG: ${REDMINE_TAG}
     volumes:
+      - ./backup/redmine:/backups
       - ./data/redmine/redmine:/home/redmine/data
       - ./data/gitlab/gitlab/repositories:/git
     environment:
@@ -193,6 +228,7 @@ services:
 
       - REDMINE_CONCURRENT_UPLOADS=2
 
+      - REDMINE_BACKUPS_DIR=/backups
       - REDMINE_BACKUP_SCHEDULE=daily
       - REDMINE_BACKUP_EXPIRY=604800
       - REDMINE_BACKUP_TIME=1:00
@@ -220,8 +256,11 @@ services:
 
   jenkins:
     restart: always
-    build: recipes/jenkins
-    image: k0gihf9s/jenkins:1.24.4
+    image: k0gihf9s/jenkins:${JENKINS_TAG}
+    build:
+      context: ./recipes/jenkins
+      args:
+        JENKINS_TAG: ${JENKINS_TAG}
     environment:
       - TZ=Asia/Tokyo
 
@@ -231,134 +270,74 @@ services:
       - ./data/jenkins/jenkins:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-  mattermost:
+  openldap:
     restart: always
-    build: recipes/mattermost
-    image: k0gihf9s/mattermost:5.19.0
-    volumes:
-      - ./data/mattermost/mattermost/config:/mattermost/config
-      - ./data/mattermost/mattermost/data:/mattermost/data
-      - ./data/mattermost/mattermost/logs:/mattermost/logs
-      - ./data/mattermost/mattermost/plugins:/mattermost/plugins
+    image: osixia/openldap-backup:${OPENLDAP_TAG}
+    mem_limit: 128m
     environment:
-      - MM_USERNAME=mmuser
-      - MM_PASSWORD=mmuser_password
-      - MM_DBNAME=mattermost
-      - DB_HOST=mattermost-mysql
-      - DB_PORT_NUMBER=3306
-      - MM_SQLSETTINGS_DRIVERNAME=mysql
-      - MM_SQLSETTINGS_DATASOURCE=mmuser:mmuser_password@tcp(mattermost-mysql:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s
-      - TZ=Asia/Tokyo
-  mattermost-mysql:
-    restart: always
-    image: mysql:5.7.29
-    environment:
-      - TZ=Asia/Tokyo
+      TZ: Asia/Tokyo
+      LDAP_DOMAIN: k0gihf9s.org
+      LDAP_ADMIN_PASSWORD: admin
 
-      - MYSQL_ROOT_PASSWORD=rootpass
-      - MYSQL_USER=mmuser
-      - MYSQL_PASSWORD=mmuser_password
-      - MYSQL_DATABASE=mattermost
+      LDAP_BACKUP_CONFIG_CRON_EXP: "0 1 * * *"
+      LDAP_BACKUP_DATA_CRON_EXP: "0 1 * * *"
+      LDAP_BACKUP_TTL: 7
     volumes:
-      - ./data/mattermost/mysql:/var/lib/mysql
-      - ./recipes/mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-
-  ldap:
-    restart: always
-    image: osixia/openldap-backup:1.3.0
-    volumes:
-      - ./data/ldap/backup:/data/backup
-      - ./data/ldap/data:/var/lib/ldap
+      - ./backup/ldap:/data/backup
+      - ./data/ldap/database:/var/lib/ldap
       - ./data/ldap/config:/etc/ldap/slapd.d
-    environment:
-      - TZ=Asia/Tokyo
-
-      - LDAP_ORGANISATION=k0gihf9s
-      - LDAP_DOMAIN=hswinter.mydns.jp
-      - LDAP_ADMIN_PASSWORD=admin
-      - LDAP_CONFIG_PASSWORD=config
-
-      - LDAP_BACKUP_CONFIG_CRON_EXP=0 4 1 * *
-      - LDAP_BACKUP_DATA_CRON_EXP=0 4 1 * *z
-      - LDAP_BACKUP_TTL=15
   phpldapadmin:
     restart: always
-    build: recipes/phpldapadmin
-    image: k0gihf9s/phpldapadmin:0.9.0
-    depends_on:
-      - ldap
+    image: k0gihf9s/phpldapadmin:${PHPLDAPADMIN_TAG}
+    build:
+      context: ./recipes/phpldapadmin
+      args:
+        PHPLDAPADMIN_TAG: ${PHPLDAPADMIN_TAG}
+    mem_limit: 128m
     environment:
-      - TZ=Asia/Tokyo
-
-      - PHPLDAPADMIN_LDAP_HOSTS=ldap
-      - PHPLDAPADMIN_HTTPS=false
-
-  sonarqube:
-    restart: always
-    image: sonarqube:8.6.1-community
-    volumes:
-      - ./data/sonarqube/sonarqube/config:/opt/sonarqube/conf
-      - ./data/sonarqube/sonarqube/data:/opt/sonarqube/data
-      - ./data/sonarqube/sonarqube/logs:/opt/sonarqube/logs
-      - ./data/sonarqube/sonarqube/plugins:/opt/sonarqube/extensions
-    environment:
-      - sonar.jdbc.username=sonarqube
-      - sonar.jdbc.password=sonarqube_password
-      - sonar.jdbc.url=jdbc:postgresql://sonarqube-postgres:5432/sonarqube?useUnicode=true&characterEncoding=utf8&useSSL=false&rewriteBatchedStatements=true
-      - TZ=Asia/Tokyo
-    command: >
-      -Dsonar.web.context=/sonarqube
-      -Dsonar.web.port=9000
-
-  sonarqube-postgres:
-    restart: always
-    image: postgres:12.3-alpine
-    environment:
-      - TZ=Asia/Tokyo
-
-      - POSTGRES_USER=sonarqube
-      - POSTGRES_PASSWORD=sonarqube_password
-      - POSTGRES_DB=sonarqube
-    volumes:
-      - ./data/sonarqube/postgres12:/var/lib/postgresql/data
+      TZ: Asia/Tokyo
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
+      PHPLDAPADMIN_HTTPS: "false"
 
   keycloak:
-    restart: always
-    build: recipes/keycloak
-    image: k0gihf9s/keycloak:12.0.2
+    image: jboss/keycloak:${KEYCLOAK_TAG}
     environment:
-      - TZ=Asia/Tokyo
-
-      - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=M0I6U2WVU8KFSlGqf0Ob
-      - PROXY_ADDRESS_FORWARDING=true
-      - JDBC_PARAMS=useSSL=false
-      - DB_VENDOR=POSTGRES
-      - DB_ADDR=keycloak-postgres
-      - DB_DATABASE=keycloak
-      - DB_USER=keycloak
-      - DB_SCHEMA=public
-      - DB_PASSWORD=keycloak_password
-
+      TZ: Asia/Tokyo
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      PROXY_ADDRESS_FORWARDING: "true"
+      DB_VENDOR: POSTGRES
+      DB_ADDR: keycloak-postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: keycloak
   keycloak-postgres:
     restart: always
-    image: postgres:12.3-alpine
+    image: postgres:${KEYCLOAK_POSTGRES_TAG}
+    mem_limit: 512m
+    healthcheck:
+      test: "pg_isready -U keycloak"
+      interval: 1m
+      timeout: 5s
+      retries: 5
     environment:
-      - TZ=Asia/Tokyo
-
-      - POSTGRES_USER=keycloak
-      - POSTGRES_PASSWORD=keycloak_password
-      - POSTGRES_DB=keycloak
+      TZ: Asia/Tokyo
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      POSTGRES_DB: keycloak
     volumes:
-      - ./data/keycloak/postgres12:/var/lib/postgresql/data
+      - ./data/keycloak/postgres13:/var/lib/postgresql/data
 
   es01:
     restart: always
-    build: recipes/elasticsearch
-    image: k0gihf9s/elasticsearch:7.10.1
+    image: k0gihf9s/elasticsearch:${ELASTICSEARCH_TAG}
+    build:
+      context: ./recipes/elasticsearch
+      args:
+        ELASTICSEARCH_TAG: ${ELASTICSEARCH_TAG}
     environment:
       - TZ=Asia/Tokyo
-      # - discovery.type=single-node
       - node.name=es01
       - cluster.name=es-docker-cluster
       - discovery.seed_hosts=es02
@@ -371,13 +350,15 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - ./data/es01:/usr/share/elasticsearch/data
-      - ./data/elasticsearch/backup:/usr/share/elasticsearch/backup
-      # - ./recipes/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./data/elasticsearch/es01:/usr/share/elasticsearch/data
+      - ./backup/elasticsearch:/usr/share/elasticsearch/backup
   es02:
     restart: always
-    build: recipes/elasticsearch
-    image: k0gihf9s/elasticsearch:7.10.1
+    image: k0gihf9s/elasticsearch:${ELASTICSEARCH_TAG}
+    build:
+      context: ./recipes/elasticsearch
+      args:
+        ELASTICSEARCH_TAG: ${ELASTICSEARCH_TAG}
     environment:
       - TZ=Asia/Tokyo
       - node.name=es02
@@ -392,31 +373,201 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - ./data/es02:/usr/share/elasticsearch/data
-      - ./data/elasticsearch/backup:/usr/share/elasticsearch/backup
-      # - ./recipes/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./data/elasticsearch/es02:/usr/share/elasticsearch/data
+      - ./backup/elasticsearch:/usr/share/elasticsearch/backup
   logstash:
     restart: always
-    build: recipes/logstash
-    image: k0gihf9s/logstash:7.10.1
+    image: k0gihf9s/logstash:${ELASTICSEARCH_TAG}
+    build:
+      context: ./recipes/logstash
+      args:
+        ELASTICSEARCH_TAG: ${ELASTICSEARCH_TAG}
     volumes:
       - ./recipes/logstash/pipeline:/usr/share/logstash/pipeline
     environment:
       - TZ=Asia/Tokyo
   kibana:
     restart: always
-    build: recipes/kibana
-    image: k0gihf9s/kibana:7.10.1
+    image: k0gihf9s/kibana:${ELASTICSEARCH_TAG}
+    build:
+      context: ./recipes/kibana
+      args:
+        ELASTICSEARCH_TAG: ${ELASTICSEARCH_TAG}
     volumes:
       - ./recipes/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
     environment:
       - TZ=Asia/Tokyo
       - I18N_LOCALE="ja-JP"
 
+  alfresco:
+    restart: always
+    image: k0gihf9s/alfresco-content-repository-community:${ALFRESCO_TAG}
+    build:
+      context: ./recipes/alfresco-content-repository-community
+      args:
+        ALFRESCO_TAG: ${ALFRESCO_TAG}
+        ALFRESCO_API_TAG: ${ALFRESCO_API_TAG}
+    mem_limit: 1500m
+    depends_on:
+      - alfresco-postgres
+    environment:
+      TZ: Asia/Tokyo
+      JAVA_TOOL_OPTIONS: "
+        -Dencryption.keystore.type=JCEKS
+        -Dencryption.cipherAlgorithm=DESede/CBC/PKCS5Padding
+        -Dencryption.keyAlgorithm=DESede
+        -Dencryption.keystore.location=/usr/local/tomcat/shared/classes/alfresco/extension/keystore/keystore
+        -Dmetadata-keystore.password=mp6yc0UD9e
+        -Dmetadata-keystore.aliases=metadata
+        -Dmetadata-keystore.metadata.password=oKIWzVdEdA
+        -Dmetadata-keystore.metadata.algorithm=DESede
+        "
+      JAVA_OPTS: "
+        -Ddb.driver=org.postgresql.Driver
+        -Ddb.username=alfresco
+        -Ddb.password=alfresco
+        -Ddb.url=jdbc:postgresql://alfresco-postgres:5432/alfresco
+        -Dsolr.host=solr6
+        -Dsolr.port=8983
+        -Dsolr.http.connection.timeout=1000
+        -Dsolr.secureComms=none
+        -Dsolr.baseUrl=/solr
+        -Dindex.subsystem.name=solr6
+        -Dalfresco.host=alfresco.${SERVER_NAME}
+        -Dalfresco.port=443
+        -Dalfresco.protocol=https
+        -Dshare.host=alfresco.${SERVER_NAME}
+        -Dshare.port=443
+        -Dshare.protocol=https
+        -Daos.baseUrlOverwrite=https://alfresco.${SERVER_NAME}:443/alfresco/aos
+        -Dmessaging.broker.url=\"failover:(nio://activemq:61616)?timeout=3000&jms.useCompression=true\"
+        -Ddeployment.method=DOCKER_COMPOSE
+        -Dopencmis.server.override=true
+        -Dopencmis.server.value=https://alfresco.${SERVER_NAME}:443
+        -DlocalTransform.core-aio.url=http://transform-core-aio:8090/
+        -Dcsrf.filter.enabled=false
+        -Dgoogledocs.enabled=true
+        -Dauthentication.chain=ldap-ad1:ldap-ad,identity-service1:identity-service,alfrescoNtlm1:alfrescoNtlm
+        -Didentity-service.auth-server-url=https://keycloak.${SERVER_NAME}/auth
+        -Didentity-service.realm=Demo
+        -Didentity-service.resource=alfresco
+        -Dldap.authentication.active=false
+        -Dldap.authentication.userNameFormat=uid=%s,ou=People,dc=k0gihf9s,dc=org
+        -Dldap.authentication.java.naming.provider.url=ldap://openldap:389
+        -Dldap.synchronization.active=true
+        -Dldap.synchronization.java.naming.security.principal=cn=admin,dc=k0gihf9s,dc=org
+        -Dldap.synchronization.java.naming.security.credentials=admin
+        -Dsynchronization.import.cron='0 1 * * * ?'
+        -Dsynchronization.syncOnStartup=true
+        -Dldap.synchronization.userSearchBase=ou=People,dc=k0gihf9s,dc=org
+        -Dldap.synchronization.modifyTimestampAttributeName=modifyTimestamp
+        -Dldap.synchronization.timestampFormat=yyyyMMddHHmmss\\'Z\\'
+        -Dldap.synchronization.personType=inetOrgPerson
+        -Dldap.synchronization.personQuery='(objectclass=inetOrgPerson)'
+        -Dldap.synchronization.personDifferentialQuery='(&(objectclass=inetOrgPerson)(!(modifyTimestamp<={0})))'
+        -Dldap.synchronization.userIdAttributeName=uid
+        -Dldap.synchronization.userFirstNameAttributeName=sn
+        -Dldap.synchronization.userLastNameAttributeName=givenName
+        -Dldap.synchronization.userAccountStatusProperty=
+        -Dldap.synchronization.userOrganizationalIdAttributeName=
+        -Dldap.synchronization.attributeBatchSize=0
+        -Dldap.synchronization.groupType=groupOfUniqueNames
+        -Dldap.synchronization.groupSearchBase=ou=Group,dc=k0gihf9s,dc=org
+        -Dldap.synchronization.groupQuery='(objectclass=groupOfUniqueNames)'
+        -Dldap.synchronization.groupDifferentialQuery='(&(objectclass=groupOfUniqueNames)(!(modifyTimestamp<={0})))'
+        -Dldap.synchronization.groupMemberAttributeName=uniqueMember
+        -Dldap.synchronization.groupDisplayNameAttributeName=cn
+        -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80
+        -XX:+UseG1GC -XX:+UseStringDeduplication
+        "
+    volumes:
+      - ./data/alfresco/acs:/usr/local/tomcat/alf_data
+      - ./logs/alfresco/alfresco:/usr/local/tomcat/logs
+  transform-core-aio:
+    restart: always
+    image: alfresco/alfresco-transform-core-aio:${ALFRESCO_TRANSFORM_TAG}
+    mem_limit: 1536m
+    environment:
+      TZ: Asia/Tokyo
+      JAVA_OPTS: " -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
+  share:
+    restart: always
+    image: k0gihf9s/alfresco-share:${ALFRESCO_SHARE_TAG}
+    build:
+      context: ./recipes/alfresco-share
+      args:
+        ALFRESCO_SHARE_TAG: ${ALFRESCO_SHARE_TAG}
+        SERVER_NAME: alfresco.${SERVER_NAME}
+    mem_limit: 1g
+    environment:
+      TZ: Asia/Tokyo
+      REPO_HOST: "alfresco"
+      REPO_PORT: "8080"
+      CSRF_FILTER_REFERER: https://alfresco.${SERVER_NAME}/.*
+      CSRF_FILTER_ORIGIN: https://alfresco.${SERVER_NAME}
+      JAVA_OPTS: "
+        -Dalfresco.context=alfresco
+        -Dalfresco.protocol=https
+        -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80
+        "
+    volumes:
+      - ./logs/alfresco/share:/usr/local/tomcat/logs
+  alfresco-postgres:
+    restart: always
+    image: postgres:${ALFRESCO_POSTGRES_TAG}
+    healthcheck:
+      test: "pg_isready -U alfresco"
+      interval: 1m
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    environment:
+      TZ: Asia/Tokyo
+      POSTGRES_PASSWORD: alfresco
+      POSTGRES_USER: alfresco
+      POSTGRES_DB: alfresco
+    command: postgres -c max_connections=300 -c log_min_messages=LOG
+    volumes:
+      - ./data/alfresco/postgres13:/var/lib/postgresql/data
+  solr6:
+    restart: always
+    image: k0gihf9s/alfresco-search-services:${ALFRESCO_SEARCH_TAG}
+    build:
+      context: ./recipes/alfresco-search-services
+      args:
+        ALFRESCO_SEARCH_TAG: ${ALFRESCO_SEARCH_TAG}
+    mem_limit: 2g
+    environment:
+      TZ: Asia/Tokyo
+      #Solr needs to know how to register itself with Alfresco
+      SOLR_ALFRESCO_HOST: alfresco
+      SOLR_ALFRESCO_PORT: 8080
+      #Alfresco needs to know how to call solr
+      SOLR_SOLR_HOST: solr6
+      SOLR_SOLR_PORT: 8983
+      #Create the default alfresco and archive cores
+      SOLR_CREATE_ALFRESCO_DEFAULTS: alfresco,archive
+      #HTTP by default
+      ALFRESCO_SECURE_COMMS: none
+    volumes:
+      - ./data/alfresco/ass:/opt/alfresco-search-services/data
+  activemq:
+    restart: always
+    image: alfresco/alfresco-activemq:${ALFRESCO_ACTIVEMQ_TAG}
+    mem_limit: 1g
+    environment:
+      TZ: Asia/Tokyo
+    ports:
+      - 8161:8161 # Web Console
+      - 5672:5672 # AMQP
+      - 61616:61616 # OpenWire
+      - 61613:61613 # STOMP
+
   testlink-mariadb:
     restart: always
-    image: bitnami/mariadb:10.2.31
+    image: bitnami/mariadb:${TESTLINK_MARIADB_TAG}
     environment:
+      - TZ=Asia/Tokyo
       - MARIADB_USER=bn_testlink
       - MARIADB_DATABASE=bitnami_testlink
       - ALLOW_EMPTY_PASSWORD=yes
@@ -424,8 +575,11 @@ services:
       - ./data/testlink/mariadb:/bitnami/mariadb
   testlink:
     restart: always
-    build: recipes/testlink
-    image: k0gihf9s/testlink:1.9.20
+    image: k0gihf9s/testlink:${TESTLINK_TAG}
+    build:
+      context: ./recipes/testlink
+      args:
+        TESTLINK_TAG: ${TESTLINK_TAG}
     environment:
       - TZ=Asia/Tokyo
       - TESTLINK_LANGUAGE=ja_JP
@@ -439,14 +593,30 @@ services:
 
   nginx:
     restart: always
-    image: nginx:1.17.8-alpine
+    image: nginx:${NGINX_TAG}
+    mem_limit: 128m
+    depends_on:
+      - redmine
+      - gitlab
+      - jenkins
+      - kibana
+      - testlink
+      - alfresco
+      - share
+      - solr6
+      - keycloak
+      - phpldapadmin
     ports:
-      - '65124:80'
-      - '54289:22'
-      - '63541:60500'
-      - '443:443'
+      - "65124:80"
+      - "22:22"
+      - "60500:60500"
+      - "443:443"
     volumes:
+      - ./recipes/nginx/etc/dhparam.pem:/etc/nginx/dhparam.pem:ro
       - ./recipes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./recipes/nginx/etc/ssl_settings.conf:/etc/nginx/ssl_settings.conf:ro
+      - ./recipes/nginx/etc/my.conf.d:/etc/nginx/my.conf.d:ro
       - ./recipes/nginx/html:/usr/share/nginx/html:ro
+      - C:/Certbot:/etc/letsencrypt:ro
     environment:
       - TZ=Asia/Tokyo

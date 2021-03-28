@@ -1,4 +1,5 @@
-FROM sameersbn/redmine:4.1.1-9
+ARG REDMINE_TAG
+FROM sameersbn/redmine:${REDMINE_TAG}
 
 COPY runtime.patch /tmp
 
