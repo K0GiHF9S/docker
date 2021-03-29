@@ -529,6 +529,32 @@ services:
     command: postgres -c max_connections=300 -c log_min_messages=LOG
     volumes:
       - ./data/alfresco/postgres13:/var/lib/postgresql/data
+  alfresco-postgres-backup:
+    restart: always
+    image: prodrigestivill/postgres-backup-local:${ALFRESCO_POSTGRES__BACKUPTAG}
+    healthcheck:
+      test: "curl -f localhost:8080 || exit 1"
+      interval: 1m
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    user: postgres:postgres
+    depends_on:
+      - alfresco-postgres
+    environment:
+      TZ: Asia/Tokyo
+      POSTGRES_HOST: alfresco-postgres
+      POSTGRES_PASSWORD: alfresco
+      POSTGRES_USER: alfresco
+      POSTGRES_DB: alfresco
+      POSTGRES_EXTRA_OPTS: -Z6 --schema=public --blobs
+      SCHEDULE: "0 0 5 * * *"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+      HEALTHCHECK_PORT: 8080
+    volumes:
+      - ./backup/alfresco/database:/backups
   solr6:
     restart: always
     image: k0gihf9s/alfresco-search-services:${ALFRESCO_SEARCH_TAG}
