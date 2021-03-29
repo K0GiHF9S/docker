@@ -459,6 +459,7 @@ services:
         -Dldap.synchronization.java.naming.security.credentials=admin
         -Dsynchronization.import.cron='0 1 * * * ?'
         -Dsynchronization.syncOnStartup=true
+        -Dsynchronization.synchronizeChangesOnly=false
         -Dldap.synchronization.userSearchBase=ou=People,dc=k0gihf9s,dc=org
         -Dldap.synchronization.modifyTimestampAttributeName=modifyTimestamp
         -Dldap.synchronization.timestampFormat=yyyyMMddHHmmss\\'Z\\'
@@ -474,7 +475,6 @@ services:
         -Dldap.synchronization.groupType=groupOfUniqueNames
         -Dldap.synchronization.groupSearchBase=ou=Group,dc=k0gihf9s,dc=org
         -Dldap.synchronization.groupQuery='(objectclass=groupOfUniqueNames)'
-        -Dldap.synchronization.groupDifferentialQuery='(&(objectclass=groupOfUniqueNames)(!(modifyTimestamp<={0})))'
         -Dldap.synchronization.groupMemberAttributeName=uniqueMember
         -Dldap.synchronization.groupDisplayNameAttributeName=cn
         -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80
