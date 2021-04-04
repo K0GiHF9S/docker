@@ -12,5 +12,6 @@ RUN sed -i '/Connector port="8080"/a scheme="https" secure="true"' $TOMCAT_DIR/c
 RUN sed -i 's@<show-authorization-status>true</show-authorization-status>@<show-authorization-status>false</show-authorization-status>@' \
   $TOMCAT_DIR/shared/classes/alfresco/web-extension/share-config-custom.xml
 
+# Hide Repositry library in the header
 RUN sed -i 's@<visible>false</visible>@<visible>true</visible>@' \
   $TOMCAT_DIR/shared/classes/alfresco/web-extension/share-config-custom.xml

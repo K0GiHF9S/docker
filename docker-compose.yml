@@ -300,6 +300,7 @@ services:
       PHPLDAPADMIN_HTTPS: "false"
 
   keycloak:
+    restart: always
     image: jboss/keycloak:${KEYCLOAK_TAG}
     environment:
       TZ: Asia/Tokyo
@@ -427,7 +428,7 @@ services:
         -Ddb.username=alfresco
         -Ddb.password=alfresco
         -Ddb.url=jdbc:postgresql://alfresco-postgres:5432/alfresco
-        -Dsolr.host=solr6
+        -Dsolr.host=alfresco-solr6
         -Dsolr.port=8983
         -Dsolr.http.connection.timeout=1000
         -Dsolr.secureComms=none
@@ -440,18 +441,21 @@ services:
         -Dshare.port=443
         -Dshare.protocol=https
         -Daos.baseUrlOverwrite=https://alfresco.${SERVER_NAME}:443/alfresco/aos
-        -Dmessaging.broker.url=\"failover:(nio://activemq:61616)?timeout=3000&jms.useCompression=true\"
+        -Dmessaging.broker.url=\"failover:(nio://alfresco-activemq:61616)?timeout=3000&jms.useCompression=true\"
         -Ddeployment.method=DOCKER_COMPOSE
         -Dopencmis.server.override=true
         -Dopencmis.server.value=https://alfresco.${SERVER_NAME}:443
-        -DlocalTransform.core-aio.url=http://transform-core-aio:8090/
+        -DlocalTransform.core-aio.url=http://alfresco-transform-core-aio:8090/
         -Dcsrf.filter.enabled=false
         -Dgoogledocs.enabled=true
-        -Dauthentication.chain=ldap-ad1:ldap-ad,identity-service1:identity-service,alfrescoNtlm1:alfrescoNtlm
+        -Dsmart.folders.enabled=true
+        -Dsmart.folders.config.type.templates.qname.filter=*
+        -Dalfresco.authentication.allowGuestLogin=false
+        -Dauthentication.chain=identity-service1:identity-service,ldap-ad1:ldap-ad
         -Didentity-service.auth-server-url=https://keycloak.${SERVER_NAME}/auth
         -Didentity-service.realm=Demo
         -Didentity-service.resource=alfresco
-        -Dldap.authentication.active=false
+        -Dldap.authentication.active=true
         -Dldap.authentication.userNameFormat=uid=%s,ou=People,dc=k0gihf9s,dc=org
         -Dldap.authentication.java.naming.provider.url=ldap://openldap:389
         -Dldap.synchronization.active=true
@@ -483,21 +487,21 @@ services:
     volumes:
       - ./data/alfresco/acs:/usr/local/tomcat/alf_data
       - ./logs/alfresco/alfresco:/usr/local/tomcat/logs
-  transform-core-aio:
+  alfresco-transform-core-aio:
     restart: always
     image: alfresco/alfresco-transform-core-aio:${ALFRESCO_TRANSFORM_TAG}
     mem_limit: 1536m
     environment:
       TZ: Asia/Tokyo
       JAVA_OPTS: " -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
-  share:
+  alfresco-share:
     restart: always
     image: k0gihf9s/alfresco-share:${ALFRESCO_SHARE_TAG}
     build:
       context: ./recipes/alfresco-share
       args:
         ALFRESCO_SHARE_TAG: ${ALFRESCO_SHARE_TAG}
-        SERVER_NAME: alfresco.${SERVER_NAME}
+        SERVER_NAME: ${SERVER_NAME}
     mem_limit: 1g
     environment:
       TZ: Asia/Tokyo
@@ -555,7 +559,7 @@ services:
       HEALTHCHECK_PORT: 8080
     volumes:
       - ./backup/alfresco/database:/backups
-  solr6:
+  alfresco-solr6:
     restart: always
     image: k0gihf9s/alfresco-search-services:${ALFRESCO_SEARCH_TAG}
     build:
@@ -569,7 +573,7 @@ services:
       SOLR_ALFRESCO_HOST: alfresco
       SOLR_ALFRESCO_PORT: 8080
       #Alfresco needs to know how to call solr
-      SOLR_SOLR_HOST: solr6
+      SOLR_SOLR_HOST: alfresco-solr6
       SOLR_SOLR_PORT: 8983
       #Create the default alfresco and archive cores
       SOLR_CREATE_ALFRESCO_DEFAULTS: alfresco,archive
@@ -577,7 +581,7 @@ services:
       ALFRESCO_SECURE_COMMS: none
     volumes:
       - ./data/alfresco/ass:/opt/alfresco-search-services/data
-  activemq:
+  alfresco-activemq:
     restart: always
     image: alfresco/alfresco-activemq:${ALFRESCO_ACTIVEMQ_TAG}
     mem_limit: 1g
@@ -628,8 +632,8 @@ services:
       - kibana
       - testlink
       - alfresco
-      - share
-      - solr6
+      - alfresco-share
+      - alfresco-solr6
       - keycloak
       - phpldapadmin
     ports:
