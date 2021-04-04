@@ -451,14 +451,14 @@ services:
         -Dsmart.folders.enabled=true
         -Dsmart.folders.config.type.templates.qname.filter=*
         -Dalfresco.authentication.allowGuestLogin=false
-        -Dauthentication.chain=identity-service1:identity-service,ldap-ad1:ldap-ad
+        -Dauthentication.chain=ldap-ad1:ldap-ad,identity-service1:identity-service
         -Didentity-service.auth-server-url=https://keycloak.${SERVER_NAME}/auth
         -Didentity-service.realm=Demo
         -Didentity-service.resource=alfresco
         -Dldap.authentication.active=true
         -Dldap.authentication.userNameFormat=uid=%s,ou=People,dc=k0gihf9s,dc=org
         -Dldap.authentication.java.naming.provider.url=ldap://openldap:389
-        -Dldap.synchronization.active=true
+        -Dldap.synchronization.active=false
         -Dldap.synchronization.java.naming.security.principal=cn=admin,dc=k0gihf9s,dc=org
         -Dldap.synchronization.java.naming.security.credentials=admin
         -Dsynchronization.import.cron='0 1 * * * ?'
@@ -640,13 +640,10 @@ services:
       - "65124:80"
       - "22:22"
       - "60500:60500"
-      - "443:443"
     volumes:
       - ./recipes/nginx/etc/dhparam.pem:/etc/nginx/dhparam.pem:ro
       - ./recipes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./recipes/nginx/etc/ssl_settings.conf:/etc/nginx/ssl_settings.conf:ro
       - ./recipes/nginx/etc/my.conf.d:/etc/nginx/my.conf.d:ro
       - ./recipes/nginx/html:/usr/share/nginx/html:ro
-      - C:/Certbot:/etc/letsencrypt:ro
     environment:
       - TZ=Asia/Tokyo
