@@ -1,4 +1,4 @@
-version: "2"
+version: "3.9"
 services:
   privileged:
     restart: always
@@ -53,21 +53,23 @@ services:
       interval: 1m
       timeout: 5s
       retries: 5
+    depends_on:
+      - gitlab
     volumes:
-      - ./data/gitlab/gitlab-ci-multi-runner/data:/home/gitlab-runner
-      - ./data/gitlab/gitlab-ci-multi-runner/config:/etc/gitlab-runner
+      - ./data/gitlab/gitlab-ci-multi-runner:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - TZ=Asia/Tokyo
       - REGISTER_NON_INTERACTIVE=true
       - CI_SERVER_URL=https://${SERVER_NAME}/gitlab/
-      - REGISTRATION_TOKEN=dsojDECUB8jeXaZzY4Gp
+      - REGISTRATION_TOKEN=MnbuE3p-KVgpJC841jsX
       - RUNNER_NAME=runner1
       - RUNNER_EXECUTOR=docker
       - RUNNER_TAG_LIST=docker
-      - RUNNER_LIMIT=1
+      - RUNNER_LIMIT=5
       - DOCKER_IMAGE=alpine:latest
       - DOCKER_VOLUMES=/var/run/docker.sock:/var/run/docker.sock
+      - DOCKER_PULL_POLICY=if-not-present
   gitlab:
     restart: always
     image: k0gihf9s/gitlab:${GITLAB_TAG}
@@ -75,6 +77,9 @@ services:
       context: ./recipes/gitlab
       args:
         GITLAB_TAG: ${GITLAB_TAG}
+    depends_on:
+      - gitlab-postgres
+      - gitlab-redis
     healthcheck:
       test: "healthcheck"
       interval: 1m
@@ -149,9 +154,9 @@ services:
 
       - GITLAB_PAGES_ENABLED=true
       - GITLAB_PAGES_DOMAIN=${SERVER_NAME}
-      - GITLAB_PAGES_HTTPS=false
+      - GITLAB_PAGES_HTTPS=true
       - GITLAB_PAGES_PORT=443
-      - GITLAB_PAGES_EXTERNAL_HTTP=:8010
+      - GITLAB_PAGES_NGINX_PROXY=false
 
       - OAUTH_ENABLED=true
       - OAUTH_ALLOW_SSO=redmine
@@ -165,6 +170,20 @@ services:
 
       - NGINX_REAL_IP_RECURSIVE=on
       - NGINX_REAL_IP_TRUSTED_ADDRESSES=172.18.0.0/16
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.3
+
+  plantuml:
+    restart: always
+    image: plantuml/plantuml-server:tomcat
+    environment:
+      - PLANTUML_LIMIT_SIZE=8192
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.13
 
   redmine-mysql:
     restart: always
@@ -180,7 +199,6 @@ services:
       retries: 5
     environment:
       - TZ=Asia/Tokyo
-
       - MYSQL_ROOT_PASSWORD=rootpass
       - MYSQL_USER=redmine
       - MYSQL_PASSWORD=password
@@ -204,6 +222,9 @@ services:
       context: ./recipes/redmine
       args:
         REDMINE_TAG: ${REDMINE_TAG}
+    depends_on:
+      - redmine-mysql
+      - redmine-memcached
     volumes:
       - ./backup/redmine:/backups
       - ./data/redmine/redmine:/home/redmine/data
@@ -256,6 +277,10 @@ services:
 
       - NGINX_REAL_IP_RECURSIVE=on
       - NGINX_REAL_IP_TRUSTED_ADDRESSES=172.18.0.0/16
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.4
 
   jenkins:
     restart: always
@@ -272,6 +297,10 @@ services:
     volumes:
       - ./data/jenkins/jenkins:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.5
 
   sonarqube-postgres:
     restart: always
@@ -282,14 +311,17 @@ services:
       - POSTGRES_PASSWORD=sonarqube_password
       - POSTGRES_DB=sonarqube
     volumes:
-      - ./data/sonarqube/postgres10:/var/lib/postgresql/data
+      - ./data/sonarqube/postgres13:/var/lib/postgresql/data
   sonarqube:
     restart: always
     image: sonarqube:${SONARQUBE_TAG}
+    depends_on:
+      - sonarqube-postgres
     volumes:
       - ./data/sonarqube/sonarqube/config:/opt/sonarqube/conf
       - ./data/sonarqube/sonarqube/data:/opt/sonarqube/data
       - ./data/sonarqube/sonarqube/plugins:/opt/sonarqube/extensions
+      - ./data/sonarqube/sonarqube-community-branch-plugin-1.7.0.jar:/opt/sonarqube/lib/common/sonarqube-community-branch-plugin-1.7.0.jar
       - ./logs/sonarqube:/opt/sonarqube/logs
     environment:
       - TZ=Asia/Tokyo
@@ -299,6 +331,10 @@ services:
     command: >
       -Dsonar.web.context=/sonarqube
       -Dsonar.web.port=9000
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.6
 
   openldap:
     restart: always
@@ -323,26 +359,18 @@ services:
       context: ./recipes/phpldapadmin
       args:
         PHPLDAPADMIN_TAG: ${PHPLDAPADMIN_TAG}
+    depends_on:
+      - openldap
     mem_limit: 128m
     environment:
       TZ: Asia/Tokyo
       PHPLDAPADMIN_LDAP_HOSTS: openldap
       PHPLDAPADMIN_HTTPS: "false"
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.7
 
-  keycloak:
-    restart: always
-    image: jboss/keycloak:${KEYCLOAK_TAG}
-    environment:
-      TZ: Asia/Tokyo
-      KEYCLOAK_USER: admin
-      KEYCLOAK_PASSWORD: admin
-      PROXY_ADDRESS_FORWARDING: "true"
-      DB_VENDOR: POSTGRES
-      DB_ADDR: keycloak-postgres
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_SCHEMA: public
-      DB_PASSWORD: keycloak
   keycloak-postgres:
     restart: always
     image: postgres:${KEYCLOAK_POSTGRES_TAG}
@@ -359,6 +387,26 @@ services:
       POSTGRES_DB: keycloak
     volumes:
       - ./data/keycloak/postgres13:/var/lib/postgresql/data
+  keycloak:
+    restart: always
+    image: jboss/keycloak:${KEYCLOAK_TAG}
+    depends_on:
+      - keycloak-postgres
+    environment:
+      TZ: Asia/Tokyo
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      PROXY_ADDRESS_FORWARDING: "true"
+      DB_VENDOR: POSTGRES
+      DB_ADDR: keycloak-postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: keycloak
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.8
 
   es01:
     restart: always
@@ -413,6 +461,9 @@ services:
       context: ./recipes/logstash
       args:
         ELASTICSEARCH_TAG: ${ELASTICSEARCH_TAG}
+    depends_on:
+      - es01
+      - es02
     volumes:
       - ./recipes/logstash/pipeline:/usr/share/logstash/pipeline
     environment:
@@ -424,11 +475,18 @@ services:
       context: ./recipes/kibana
       args:
         ELASTICSEARCH_TAG: ${ELASTICSEARCH_TAG}
+    depends_on:
+      - es01
+      - es02
     volumes:
       - ./recipes/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
     environment:
       - TZ=Asia/Tokyo
       - I18N_LOCALE="ja-JP"
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.9
 
   alfresco:
     restart: always
@@ -517,6 +575,10 @@ services:
     volumes:
       - ./data/alfresco/acs:/usr/local/tomcat/alf_data
       - ./logs/alfresco/alfresco:/usr/local/tomcat/logs
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.10
   alfresco-transform-core-aio:
     restart: always
     image: alfresco/alfresco-transform-core-aio:${ALFRESCO_TRANSFORM_TAG}
@@ -546,6 +608,10 @@ services:
         "
     volumes:
       - ./logs/alfresco/share:/usr/local/tomcat/logs
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.11
   alfresco-postgres:
     restart: always
     image: postgres:${ALFRESCO_POSTGRES_TAG}
@@ -611,6 +677,10 @@ services:
       ALFRESCO_SECURE_COMMS: none
     volumes:
       - ./data/alfresco/ass:/opt/alfresco-search-services/data
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.12
   alfresco-activemq:
     restart: always
     image: alfresco/alfresco-activemq:${ALFRESCO_ACTIVEMQ_TAG}
@@ -623,57 +693,56 @@ services:
       - 61616:61616 # OpenWire
       - 61613:61613 # STOMP
 
-  testlink-mariadb:
-    restart: always
-    image: bitnami/mariadb:${TESTLINK_MARIADB_TAG}
-    environment:
-      - TZ=Asia/Tokyo
-      - MARIADB_USER=bn_testlink
-      - MARIADB_DATABASE=bitnami_testlink
-      - ALLOW_EMPTY_PASSWORD=yes
-    volumes:
-      - ./data/testlink/mariadb:/bitnami/mariadb
-  testlink:
-    restart: always
-    image: k0gihf9s/testlink:${TESTLINK_TAG}
-    build:
-      context: ./recipes/testlink
-      args:
-        TESTLINK_TAG: ${TESTLINK_TAG}
-    environment:
-      - TZ=Asia/Tokyo
-      - TESTLINK_LANGUAGE=ja_JP
-      - MARIADB_HOST=testlink-mariadb
-      - MARIADB_PORT_NUMBER=3306
-      - TESTLINK_DATABASE_USER=bn_testlink
-      - TESTLINK_DATABASE_NAME=bitnami_testlink
-      - ALLOW_EMPTY_PASSWORD=yes
-    volumes:
-      - ./data/testlink/testlink:/bitnami/testlink
+  # testlink-mariadb:
+  #   restart: always
+  #   image: bitnami/mariadb:${TESTLINK_MARIADB_TAG}
+  #   environment:
+  #     - TZ=Asia/Tokyo
+  #     - MARIADB_USER=bn_testlink
+  #     - MARIADB_DATABASE=bitnami_testlink
+  #     - ALLOW_EMPTY_PASSWORD=yes
+  #   volumes:
+  #     - ./data/testlink/mariadb:/bitnami/mariadb
+  # testlink:
+  #   restart: always
+  #   image: k0gihf9s/testlink:${TESTLINK_TAG}
+  #   build:
+  #     context: ./recipes/testlink
+  #     args:
+  #       TESTLINK_TAG: ${TESTLINK_TAG}
+  #   environment:
+  #     - TZ=Asia/Tokyo
+  #     - TESTLINK_LANGUAGE=ja_JP
+  #     - MARIADB_HOST=testlink-mariadb
+  #     - MARIADB_PORT_NUMBER=3306
+  #     - TESTLINK_DATABASE_USER=bn_testlink
+  #     - TESTLINK_DATABASE_NAME=bitnami_testlink
+  #     - ALLOW_EMPTY_PASSWORD=yes
+  #   volumes:
+  #     - ./data/testlink/testlink:/bitnami/testlink
 
   nginx:
     restart: always
     image: nginx:${NGINX_TAG}
     mem_limit: 128m
-    depends_on:
-      - redmine
-      - gitlab
-      - jenkins
-      - kibana
-      - testlink
-      - alfresco
-      - alfresco-share
-      - alfresco-solr6
-      - keycloak
-      - phpldapadmin
     ports:
       - "65124:80"
       - "22:22"
       - "60500:60500"
     volumes:
-      - ./recipes/nginx/etc/dhparam.pem:/etc/nginx/dhparam.pem:ro
       - ./recipes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./recipes/nginx/etc/my.conf.d:/etc/nginx/my.conf.d:ro
       - ./recipes/nginx/html:/usr/share/nginx/html:ro
     environment:
       - TZ=Asia/Tokyo
+    networks:
+      front:
+        ipv4_address: 192.168.231.2
+
+networks:
+  front:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.231.0/24
+    name: front
