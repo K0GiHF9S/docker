@@ -9,6 +9,9 @@ services:
       "echo never | tee /sys/kernel/mm/transparent_hugepage/enabled;
       echo never | tee /sys/kernel/mm/transparent_hugepage/defrag;
       sysctl -w vm.max_map_count=262144;
+      sysctl -w fs.file-max=65536;
+      ulimit -n 65536;
+      ulimit -u 4096;
       while true; do sleep 10000d; done;"
 
   gitlab-postgres:
@@ -156,6 +159,8 @@ services:
       - OAUTH_AUTO_LINK_LDAP_USER=false
       - OAUTH_AUTO_LINK_SAML_USER=false
 
+      - OAUTH_REDMINE_API_KEY=iVCawArsgFDWcuGj1z7nN0oN8wlb9rFpjlFsz8Gg
+      - OAUTH_REDMINE_API_SECRET=bNZqnXumJKoCvkc7tdpUTg4nUoROtBczjxAPC9tP
       - OAUTH_REDMINE_DOMAIN=https://${SERVER_NAME}/redmine
 
       - NGINX_REAL_IP_RECURSIVE=on
@@ -267,6 +272,33 @@ services:
     volumes:
       - ./data/jenkins/jenkins:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  sonarqube-postgres:
+    restart: always
+    image: postgres:${SONARQUBE_POSTGRES_TAG}
+    environment:
+      - TZ=Asia/Tokyo
+      - POSTGRES_USER=sonarqube
+      - POSTGRES_PASSWORD=sonarqube_password
+      - POSTGRES_DB=sonarqube
+    volumes:
+      - ./data/sonarqube/postgres10:/var/lib/postgresql/data
+  sonarqube:
+    restart: always
+    image: sonarqube:${SONARQUBE_TAG}
+    volumes:
+      - ./data/sonarqube/sonarqube/config:/opt/sonarqube/conf
+      - ./data/sonarqube/sonarqube/data:/opt/sonarqube/data
+      - ./data/sonarqube/sonarqube/plugins:/opt/sonarqube/extensions
+      - ./logs/sonarqube:/opt/sonarqube/logs
+    environment:
+      - TZ=Asia/Tokyo
+      - sonar.jdbc.username=sonarqube
+      - sonar.jdbc.password=sonarqube_password
+      - sonar.jdbc.url=jdbc:postgresql://sonarqube-postgres:5432/sonarqube?useUnicode=true&characterEncoding=utf8&useSSL=false&rewriteBatchedStatements=true
+    command: >
+      -Dsonar.web.context=/sonarqube
+      -Dsonar.web.port=9000
 
   openldap:
     restart: always
