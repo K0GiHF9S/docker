@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   privileged:
-    restart: always
+    restart: on-failure
     image: busybox:1.30.1
     privileged: true
     command: >
@@ -15,7 +15,7 @@ services:
       while true; do sleep 10000d; done;"
 
   gitlab-postgres:
-    restart: always
+    restart: on-failure
     image: postgres:${GITLAB_POSTGRES_TAG}
     healthcheck:
       test: "pg_isready -U gitlab"
@@ -30,7 +30,7 @@ services:
     volumes:
       - ./data/gitlab/gitlab/postgres12:/var/lib/postgresql/data
   gitlab-redis:
-    restart: always
+    restart: on-failure
     image: redis:${GITLAB_REDIS_TAG}
     healthcheck:
       test: "redis-cli ping"
@@ -46,7 +46,7 @@ services:
     environment:
       - TZ=Asia/Tokyo
   gitlab-ci-multi-runner:
-    restart: always
+    restart: on-failure
     image: gitlab/gitlab-runner:${GITLAB_RUNNER_TAG}
     healthcheck:
       test: "gitlab-runner health-check"
@@ -71,7 +71,7 @@ services:
       - DOCKER_VOLUMES=/var/run/docker.sock:/var/run/docker.sock
       - DOCKER_PULL_POLICY=if-not-present
   gitlab:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/gitlab:${GITLAB_TAG}
     build:
       context: ./recipes/gitlab
@@ -176,7 +176,7 @@ services:
         ipv4_address: 192.168.231.3
 
   plantuml:
-    restart: always
+    restart: on-failure
     image: plantuml/plantuml-server:tomcat
     environment:
       - PLANTUML_LIMIT_SIZE=8192
@@ -186,7 +186,7 @@ services:
         ipv4_address: 192.168.231.13
 
   redmine-mysql:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/mysql:${REDMINE_MYSQL_TAG}
     build:
       context: ./recipes/mysql
@@ -206,7 +206,7 @@ services:
     volumes:
       - ./data/redmine/mysql:/var/lib/mysql
   redmine-memcached:
-    restart: always
+    restart: on-failure
     image: memcached:${REDMINE_MEMCACHED_TAG}
     healthcheck:
       test: "nc -z -w 1 localhost 11211"
@@ -216,7 +216,7 @@ services:
     environment:
       - TZ=Asia/Tokyo
   redmine:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/redmine:${REDMINE_TAG}
     build:
       context: ./recipes/redmine
@@ -283,7 +283,7 @@ services:
         ipv4_address: 192.168.231.4
 
   jenkins:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/jenkins:${JENKINS_TAG}
     build:
       context: ./recipes/jenkins
@@ -303,7 +303,7 @@ services:
         ipv4_address: 192.168.231.5
 
   sonarqube-postgres:
-    restart: always
+    restart: on-failure
     image: postgres:${SONARQUBE_POSTGRES_TAG}
     environment:
       - TZ=Asia/Tokyo
@@ -313,7 +313,7 @@ services:
     volumes:
       - ./data/sonarqube/postgres13:/var/lib/postgresql/data
   sonarqube:
-    restart: always
+    restart: on-failure
     image: sonarqube:${SONARQUBE_TAG}
     depends_on:
       - sonarqube-postgres
@@ -321,13 +321,14 @@ services:
       - ./data/sonarqube/sonarqube/config:/opt/sonarqube/conf
       - ./data/sonarqube/sonarqube/data:/opt/sonarqube/data
       - ./data/sonarqube/sonarqube/plugins:/opt/sonarqube/extensions
-      - ./data/sonarqube/sonarqube-community-branch-plugin-1.7.0.jar:/opt/sonarqube/lib/common/sonarqube-community-branch-plugin-1.7.0.jar
       - ./logs/sonarqube:/opt/sonarqube/logs
     environment:
       - TZ=Asia/Tokyo
       - sonar.jdbc.username=sonarqube
       - sonar.jdbc.password=sonarqube_password
       - sonar.jdbc.url=jdbc:postgresql://sonarqube-postgres:5432/sonarqube?useUnicode=true&characterEncoding=utf8&useSSL=false&rewriteBatchedStatements=true
+      - SONAR_WEB_JAVAADDITIONALOPTS=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${SONARQUBE_BRANCH_PLUGIN_VERSION}.jar=web
+      - SONAR_CE_JAVAADDITIONALOPTS=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${SONARQUBE_BRANCH_PLUGIN_VERSION}.jar=ce
     command: >
       -Dsonar.web.context=/sonarqube
       -Dsonar.web.port=9000
@@ -337,7 +338,7 @@ services:
         ipv4_address: 192.168.231.6
 
   openldap:
-    restart: always
+    restart: on-failure
     image: osixia/openldap-backup:${OPENLDAP_TAG}
     mem_limit: 128m
     environment:
@@ -353,7 +354,7 @@ services:
       - ./data/ldap/database:/var/lib/ldap
       - ./data/ldap/config:/etc/ldap/slapd.d
   phpldapadmin:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/phpldapadmin:${PHPLDAPADMIN_TAG}
     build:
       context: ./recipes/phpldapadmin
@@ -372,7 +373,7 @@ services:
         ipv4_address: 192.168.231.7
 
   keycloak-postgres:
-    restart: always
+    restart: on-failure
     image: postgres:${KEYCLOAK_POSTGRES_TAG}
     mem_limit: 512m
     healthcheck:
@@ -388,7 +389,7 @@ services:
     volumes:
       - ./data/keycloak/postgres13:/var/lib/postgresql/data
   keycloak:
-    restart: always
+    restart: on-failure
     image: jboss/keycloak:${KEYCLOAK_TAG}
     depends_on:
       - keycloak-postgres
@@ -409,7 +410,7 @@ services:
         ipv4_address: 192.168.231.8
 
   es01:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/elasticsearch:${ELASTICSEARCH_TAG}
     build:
       context: ./recipes/elasticsearch
@@ -432,7 +433,7 @@ services:
       - ./data/elasticsearch/es01:/usr/share/elasticsearch/data
       - ./backup/elasticsearch:/usr/share/elasticsearch/backup
   es02:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/elasticsearch:${ELASTICSEARCH_TAG}
     build:
       context: ./recipes/elasticsearch
@@ -455,7 +456,7 @@ services:
       - ./data/elasticsearch/es02:/usr/share/elasticsearch/data
       - ./backup/elasticsearch:/usr/share/elasticsearch/backup
   logstash:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/logstash:${ELASTICSEARCH_TAG}
     build:
       context: ./recipes/logstash
@@ -469,7 +470,7 @@ services:
     environment:
       - TZ=Asia/Tokyo
   kibana:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/kibana:${ELASTICSEARCH_TAG}
     build:
       context: ./recipes/kibana
@@ -489,7 +490,7 @@ services:
         ipv4_address: 192.168.231.9
 
   alfresco:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/alfresco-content-repository-community:${ALFRESCO_TAG}
     build:
       context: ./recipes/alfresco-content-repository-community
@@ -580,14 +581,14 @@ services:
       front:
         ipv4_address: 192.168.231.10
   alfresco-transform-core-aio:
-    restart: always
+    restart: on-failure
     image: alfresco/alfresco-transform-core-aio:${ALFRESCO_TRANSFORM_TAG}
     mem_limit: 1536m
     environment:
       TZ: Asia/Tokyo
       JAVA_OPTS: " -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80"
   alfresco-share:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/alfresco-share:${ALFRESCO_SHARE_TAG}
     build:
       context: ./recipes/alfresco-share
@@ -613,7 +614,7 @@ services:
       front:
         ipv4_address: 192.168.231.11
   alfresco-postgres:
-    restart: always
+    restart: on-failure
     image: postgres:${ALFRESCO_POSTGRES_TAG}
     healthcheck:
       test: "pg_isready -U alfresco"
@@ -630,7 +631,7 @@ services:
     volumes:
       - ./data/alfresco/postgres13:/var/lib/postgresql/data
   alfresco-postgres-backup:
-    restart: always
+    restart: on-failure
     image: prodrigestivill/postgres-backup-local:${ALFRESCO_POSTGRES__BACKUPTAG}
     healthcheck:
       test: "curl -f localhost:8080 || exit 1"
@@ -656,7 +657,7 @@ services:
     volumes:
       - ./backup/alfresco/database:/backups
   alfresco-solr6:
-    restart: always
+    restart: on-failure
     image: k0gihf9s/alfresco-search-services:${ALFRESCO_SEARCH_TAG}
     build:
       context: ./recipes/alfresco-search-services
@@ -682,7 +683,7 @@ services:
       front:
         ipv4_address: 192.168.231.12
   alfresco-activemq:
-    restart: always
+    restart: on-failure
     image: alfresco/alfresco-activemq:${ALFRESCO_ACTIVEMQ_TAG}
     mem_limit: 1g
     environment:
@@ -694,7 +695,7 @@ services:
       - 61613:61613 # STOMP
 
   # testlink-mariadb:
-  #   restart: always
+  #   restart: on-failure
   #   image: bitnami/mariadb:${TESTLINK_MARIADB_TAG}
   #   environment:
   #     - TZ=Asia/Tokyo
@@ -704,7 +705,7 @@ services:
   #   volumes:
   #     - ./data/testlink/mariadb:/bitnami/mariadb
   # testlink:
-  #   restart: always
+  #   restart: on-failure
   #   image: k0gihf9s/testlink:${TESTLINK_TAG}
   #   build:
   #     context: ./recipes/testlink
@@ -722,7 +723,7 @@ services:
   #     - ./data/testlink/testlink:/bitnami/testlink
 
   nginx:
-    restart: always
+    restart: on-failure
     image: nginx:${NGINX_TAG}
     mem_limit: 128m
     ports:
