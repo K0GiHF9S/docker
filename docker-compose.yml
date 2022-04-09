@@ -632,7 +632,7 @@ services:
       - ./data/alfresco/postgres13:/var/lib/postgresql/data
   alfresco-postgres-backup:
     restart: on-failure
-    image: prodrigestivill/postgres-backup-local:${ALFRESCO_POSTGRES__BACKUPTAG}
+    image: prodrigestivill/postgres-backup-local:${ALFRESCO_POSTGRES_BACKUPTAG}
     healthcheck:
       test: "curl -f localhost:8080 || exit 1"
       interval: 1m
