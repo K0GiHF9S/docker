@@ -282,26 +282,6 @@ services:
       front:
         ipv4_address: 192.168.231.4
 
-  jenkins:
-    restart: on-failure
-    image: k0gihf9s/jenkins:${JENKINS_TAG}
-    build:
-      context: ./recipes/jenkins
-      args:
-        JENKINS_TAG: ${JENKINS_TAG}
-    environment:
-      - TZ=Asia/Tokyo
-
-      - JENKINS_OPTS=--prefix=/jenkins --sessionTimeout=0
-      - JAVA_OPTS=-Duser.timezone=Asia/Tokyo -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
-    volumes:
-      - ./data/jenkins/jenkins:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      default:
-      front:
-        ipv4_address: 192.168.231.5
-
   sonarqube-postgres:
     restart: on-failure
     image: postgres:${SONARQUBE_POSTGRES_TAG}
@@ -729,7 +709,6 @@ services:
     ports:
       - "65124:80"
       - "22:22"
-      - "60500:60500"
     volumes:
       - ./recipes/nginx/etc/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./recipes/nginx/etc/my.conf.d:/etc/nginx/my.conf.d:ro
