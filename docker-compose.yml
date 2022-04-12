@@ -28,7 +28,7 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=gitlabhq_production
     volumes:
-      - ./data/gitlab/gitlab/postgres12:/var/lib/postgresql/data
+      - ./data/gitlab/postgres12:/var/lib/postgresql/data
   gitlab-redis:
     restart: on-failure
     image: redis:${GITLAB_REDIS_TAG}
@@ -62,7 +62,7 @@ services:
       - TZ=Asia/Tokyo
       - REGISTER_NON_INTERACTIVE=true
       - CI_SERVER_URL=https://${SERVER_NAME}/gitlab/
-      - REGISTRATION_TOKEN=MnbuE3p-KVgpJC841jsX
+      - REGISTRATION_TOKEN=22K5naKWBtAsMzG9-Aoq
       - RUNNER_NAME=runner1
       - RUNNER_EXECUTOR=docker
       - RUNNER_TAG_LIST=docker
