@@ -469,6 +469,75 @@ services:
       front:
         ipv4_address: 192.168.231.9
 
+  nextcloud:
+    restart: on-failure
+    image: nextcloud:${NEXTCLOUD_TAG}
+    cap_add:
+      - SYS_ADMIN
+      - MKNOD
+    devices:
+      - /dev/fuse:/dev/fuse
+    volumes:
+      - ./data/nextcloud/nextcloud:/var/www/html
+    environment:
+      - TZ=Asia/Tokyo
+      - POSTGRES_HOST=nextcloud-postgres
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=password
+      - REDIS_HOST=nextcloud-redis
+      - OVERWRITEHOST=${SERVER_NAME}
+      - OVERWRITEPROTOCOL=https
+      - OVERWRITECLIURL=https://${SERVER_NAME}/nextcloud
+      - OVERWRITEWEBROOT=/nextcloud
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.15
+  nextcloud-onlyoffice:
+    restart: on-failure
+    image: onlyoffice/documentserver:${ONLYOFFICE_DOCUMENT_SERVER_TAG}
+    volumes:
+      - ./data/nextcloud/onlyoffice/data:/var/www/onlyoffice/Data
+      - ./data/nextcloud/onlyoffice/log:/var/log/onlyoffice
+    environment:
+      - TZ=Asia/Tokyo
+    networks:
+      default:
+      front:
+        ipv4_address: 192.168.231.16
+  nextcloud-postgres:
+    restart: on-failure
+    image: postgres:${NEXTCLOUD_POSTGRES_TAG}
+    healthcheck:
+      test: "pg_isready -U nextcloud"
+      interval: 1m
+      timeout: 5s
+      retries: 5
+    environment:
+      - TZ=Asia/Tokyo
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./data/nextcloud/postgres13:/var/lib/postgresql/data
+  nextcloud-redis:
+    restart: on-failure
+    image: redis:${NEXTCLOUD_REDIS_TAG}
+    healthcheck:
+      test: "redis-cli ping"
+      interval: 1m
+      timeout: 5s
+      retries: 5
+    command:
+      - --loglevel warning
+    sysctls:
+      net.core.somaxconn: 1024
+    volumes:
+      - ./data/nextcloud/redis:/data
+    environment:
+      - TZ=Asia/Tokyo
+
   alfresco:
     restart: on-failure
     image: k0gihf9s/alfresco-content-repository-community:${ALFRESCO_TAG}
