@@ -175,15 +175,25 @@ services:
       front:
         ipv4_address: 192.168.231.3
 
-  plantuml:
-    restart: on-failure
-    image: plantuml/plantuml-server:tomcat
+  kroki:
+    image: yuzutech/kroki
     environment:
-      - PLANTUML_LIMIT_SIZE=8192
+      - KROKI_BLOCKDIAG_HOST=blockdiag
+      - KROKI_MERMAID_HOST=mermaid
+      - KROKI_BPMN_HOST=bpmn
+      - KROKI_EXCALIDRAW_HOST=excalidraw
     networks:
       default:
       front:
-        ipv4_address: 192.168.231.13
+        ipv4_address: 192.168.231.14
+  blockdiag:
+    image: yuzutech/kroki-blockdiag
+  mermaid:
+    image: yuzutech/kroki-mermaid
+  bpmn:
+    image: yuzutech/kroki-bpmn
+  excalidraw:
+    image: yuzutech/kroki-excalidraw
 
   redmine-mysql:
     restart: on-failure
