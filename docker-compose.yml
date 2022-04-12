@@ -405,6 +405,7 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - "path.repo=/usr/share/elasticsearch/backup"
+      - xpack.security.enabled=false
     ulimits:
       memlock:
         soft: -1
@@ -428,6 +429,7 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - "path.repo=/usr/share/elasticsearch/backup"
+      - xpack.security.enabled=false
     ulimits:
       memlock:
         soft: -1
@@ -449,21 +451,19 @@ services:
       - ./recipes/logstash/pipeline:/usr/share/logstash/pipeline
     environment:
       - TZ=Asia/Tokyo
+      - xpack.monitoring.enabled=false
   kibana:
     restart: on-failure
-    image: k0gihf9s/kibana:${ELASTICSEARCH_TAG}
-    build:
-      context: ./recipes/kibana
-      args:
-        ELASTICSEARCH_TAG: ${ELASTICSEARCH_TAG}
+    image: docker.elastic.co/kibana/kibana:${ELASTICSEARCH_TAG}
     depends_on:
       - es01
       - es02
-    volumes:
-      - ./recipes/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
     environment:
       - TZ=Asia/Tokyo
       - I18N_LOCALE="ja-JP"
+      - SERVER_NAME=${SERVER_NAME}
+      - ELASTICSEARCH_HOSTS=["http://es01:9200","http://es02:9200"]
+      - SERVER_BASEPATH="/kibana"
     networks:
       default:
       front:
