@@ -12,4 +12,3 @@ RUN DEPS='fonts-ipafont curl' \
     && rm -rf /var/lib/apt/lists/* && \
     fc-cache -fv
 
-RUN sed -i -E "s/^  # rmagick_font_path:.*/  rmagick_font_path: \/usr\/share\/fonts\/opentype\/ipafont-gothic\/ipagp.ttf/" $REDMINE_RUNTIME_ASSETS_DIR/config/redmine/configuration.yml

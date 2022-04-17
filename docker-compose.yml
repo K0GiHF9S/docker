@@ -255,6 +255,7 @@ services:
       - DB_USER=redmine
       - DB_PASS=password
       - DB_NAME=redmine_production
+      - DB_ENCODING=utf8mb4
 
       - MEMCACHE_HOST=redmine-memcached
       - MEMCACHE_PORT=11211
@@ -291,6 +292,8 @@ services:
       - IMAP_PASS=password
       - IMAP_SSL=true
       - IMAP_INTERVAL=30
+
+      - REDMINE_MINIMAGICK_FONT_PATH=/usr/share/fonts/opentype/ipafont-gothic/ipagp.ttf
 
       - NGINX_REAL_IP_RECURSIVE=on
       - NGINX_REAL_IP_TRUSTED_ADDRESSES=172.18.0.0/16
