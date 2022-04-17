@@ -1,14 +1,9 @@
 ARG REDMINE_TAG
 FROM sameersbn/redmine:${REDMINE_TAG}
 
-COPY runtime.patch /tmp
-
-RUN cd ${REDMINE_RUNTIME_ASSETS_DIR} && \
-    patch -u < /tmp/runtime.patch && \
-    rm /tmp/runtime.patch
-
-RUN DEPS='fonts-ipafont curl' \
+RUN DEPS='fonts-ipafont' \
     && apt-get update && apt-get -y --no-install-recommends install $DEPS \
     && rm -rf /var/lib/apt/lists/* && \
     fc-cache -fv
 
+RUN sed -i -E "s@:dalli_store@:mem_cache_store@g" $REDMINE_RUNTIME_ASSETS_DIR/config/redmine/additional_environment.rb
