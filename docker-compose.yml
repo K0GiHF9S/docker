@@ -232,6 +232,17 @@ services:
       retries: 5
     environment:
       - TZ=Asia/Tokyo
+  chupa-text:
+    image: groonga/chupa-text:${CHUPA_TEXT_TAG}
+    environment:
+      TZ: Asia/Tokyo
+      RAILS_SERVE_STATIC_FILES: "true"
+      CHUPA_TEXT_EXTERNAL_COMMAND_LIMIT_CPU: 5
+      CHUPA_TEXT_EXTERNAL_COMMAND_LIMIT_AS: 2GB
+      CHUPA_TEXT_EXTERNAL_COMMAND_TIMEOUT: 10
+      CHUPA_TEXT_DECOMPOSER_WEBKIT_TIMEOUT: 10
+    volumes:
+      - ./log/redmine/chupa-text:/home/chupa-text/chupa-text-http-server/log:z
   redmine:
     restart: on-failure
     image: k0gihf9s/redmine:${REDMINE_TAG}
@@ -242,6 +253,7 @@ services:
     depends_on:
       - redmine-mysql
       - redmine-memcached
+      - chupa-text
     volumes:
       - ./backup/redmine:/backups
       - ./data/redmine/redmine:/home/redmine/data
