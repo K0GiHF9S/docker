@@ -242,7 +242,7 @@ services:
       CHUPA_TEXT_EXTERNAL_COMMAND_TIMEOUT: 10
       CHUPA_TEXT_DECOMPOSER_WEBKIT_TIMEOUT: 10
     volumes:
-      - ./log/redmine/chupa-text:/home/chupa-text/chupa-text-http-server/log:z
+      - ./logs/redmine/chupa-text:/home/chupa-text/chupa-text-http-server/log:z
   redmine:
     restart: on-failure
     image: k0gihf9s/redmine:${REDMINE_TAG}
