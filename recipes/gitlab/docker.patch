@@ -1,25 +1,25 @@
 diff -urN a/config/gitlabhq/gitlab.yml b/config/gitlabhq/gitlab.yml
---- a/config/gitlabhq/gitlab.yml	2020-08-02 16:40:01.000000000 +0000
-+++ b/config/gitlabhq/gitlab.yml	2020-08-07 12:33:18.884207000 +0000
-@@ -1000,6 +1000,11 @@
-             client_id: '{{OAUTH_AZURE_API_KEY}}',
-             client_secret: '{{OAUTH_AZURE_API_SECRET}}',
-             tenant_id: '{{OAUTH_AZURE_TENANT_ID}}' } }
+--- a/config/gitlabhq/gitlab.yml	2023-03-10 00:39:44.121544848 +0900
++++ b/config/gitlabhq/gitlab.yml	2023-03-10 00:43:18.011546474 +0900
+@@ -1029,6 +1029,11 @@
+             client_id: '{{OAUTH_AZURE_ACTIVEDIRECTORY_V2_CLIENT_ID}}',
+             client_secret: '{{OAUTH_AZURE_ACTIVEDIRECTORY_V2_CLIENT_SECRET}}',
+             tenant_id: '{{OAUTH_AZURE_ACTIVEDIRECTORY_V2_TENANT_ID}}' } }
 +      - { name: 'redmine',
 +          app_id: '{{OAUTH_REDMINE_API_KEY}}',
 +          app_secret: '{{OAUTH_REDMINE_API_SECRET}}',
 +          args: {
 +            redmine_base_url: '{{OAUTH_REDMINE_DOMAIN}}' } }
- 
+
      # SSO maximum session duration in seconds. Defaults to CAS default of 8 hours.
      # cas3:
 diff -urN a/functions b/functions
---- a/functions	2020-08-02 16:40:01.000000000 +0000
-+++ b/functions	2020-08-07 12:37:10.444644700 +0000
-@@ -673,6 +673,21 @@
+--- a/functions	2023-03-10 00:39:44.121544848 +0900
++++ b/functions	2023-03-10 00:42:18.991545862 +0900
+@@ -704,6 +704,21 @@
    fi
  }
- 
+
 +gitlab_configure_oauth_redmine() {
 +  if [[ -n ${OAUTH_REDMINE_API_KEY} && \
 +        -n ${OAUTH_REDMINE_API_SECRET} && \
@@ -37,21 +37,21 @@ diff -urN a/functions b/functions
 +
  gitlab_configure_oauth() {
    echo "Configuring gitlab::oauth..."
- 
-@@ -689,6 +704,7 @@
-   gitlab_configure_oauth_crowd
+
+@@ -721,6 +736,7 @@
    gitlab_configure_oauth_auth0
    gitlab_configure_oauth_azure
+   gitlab_configure_oauth_azure_ad_v2
 +  gitlab_configure_oauth_redmine
- 
+
    OAUTH_ENABLED=${OAUTH_ENABLED:-false}
    update_template ${GITLAB_CONFIG} \
-@@ -700,7 +716,7 @@
+@@ -733,7 +749,7 @@
      OAUTH_EXTERNAL_PROVIDERS
- 
+
    case ${OAUTH_AUTO_SIGN_IN_WITH_PROVIDER} in
--    cas3|google_oauth2|facebook|twitter|github|gitlab|bitbucket|saml|crowd|azure_oauth2|oauth2_generic|$OAUTH2_GENERIC_NAME)
-+    cas3|google_oauth2|facebook|twitter|github|gitlab|bitbucket|saml|crowd|azure_oauth2|oauth2_generic|redmine|$OAUTH2_GENERIC_NAME)
+-    cas3|google_oauth2|facebook|twitter|github|gitlab|bitbucket|saml|crowd|azure_oauth2|azure_activedirectory_v2|oauth2_generic|$OAUTH2_GENERIC_NAME)
++    cas3|google_oauth2|facebook|twitter|github|gitlab|bitbucket|saml|crowd|azure_oauth2|azure_activedirectory_v2|oauth2_generic|redmine|$OAUTH2_GENERIC_NAME)
        update_template ${GITLAB_CONFIG} OAUTH_AUTO_SIGN_IN_WITH_PROVIDER
        ;;
      *)
