@@ -27,7 +27,7 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=gitlabhq_production
     volumes:
-      - ./data/gitlab/postgres12:/var/lib/postgresql/data
+      - ./data/gitlab/postgresql/15/data:/var/lib/postgresql/data
   gitlab-redis:
     restart: on-failure
     image: redis:${GITLAB_REDIS_TAG}
